@@ -25,7 +25,8 @@ class Origo_Thread(Thread):
         self.scrape_type = scrape_type
 
 
-    def login(self, mail, driver) :    
+    def login(self, mail, driver) :   
+        print("login") 
         driver.get('https://origo-online.origo.ie')
         mail_address = mail[0]
         mail_pass = mail[1]
@@ -72,11 +73,12 @@ class Origo_Thread(Thread):
         path = join(dirname(__file__), 'webdriver', 'chromedriver.exe')
         driver = webdriver.Chrome (executable_path = path, options = chrome_options )
         # driver.maximize_window()
-
+        print("start chrome")
         #Remove navigator.webdriver Flag using JavaScript
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         # driver.set_window_size(1200,900)
         try:
+            print("try")
             self.login(mail, driver)
             time.sleep(5)
             if self.scrape_type == "stock":
