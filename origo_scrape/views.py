@@ -17,11 +17,11 @@ def index(request):
 
 
 def start_scrape(request):
-    global t
+    global t, cur_site
     print("start_scrape")
-    site = request.GET["site"]
+    cur_site = request.GET["site"]
     scrape_type = request.GET["scrape_type"]
-    if site == "origo":
+    if cur_site == "origo":
         t = Origo_Thread(scrape_type)
     t.start()
 
