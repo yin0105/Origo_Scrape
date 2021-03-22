@@ -24,6 +24,8 @@ scrape_status = ""
 
 
 def my_logging(log, msg):
+    global root_path
+
     log.propagate = True
     fileh = RotatingFileHandler(join(root_path, "log", "origo.log"), mode='a', maxBytes=log_file_size*1024, backupCount=2, encoding='utf-8', delay=0)
     # ('logs/' + f_name + '.log', 'a')
@@ -131,6 +133,7 @@ class Origo_Thread(Thread):
 
 
     def loop_main_category(self, driver, stock_scrape=0):
+        global root_path
         category_href_dict = {}
         products_dict = {}
         product_count = 0

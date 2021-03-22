@@ -66,6 +66,10 @@
                 background-color: #A3E81A;
                 border-color: #A3E81A;
             }
+
+            .div-scrape-status {
+                margin-bottom: 8px !important;
+            }
             
         </style>
     </head>
@@ -112,9 +116,10 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">Scraping Process</div>
-                                <div class="form-group">
+                                <div class="form-group div-scrape-status">
                                     <label for="scrape_status">Current Scraping Status :</label>
-                                    <input type="text" class="form-control" id="scrape_status" readonly>
+                                    <!-- <input type="text" class="form-control" id="scrape_status" readonly> -->
+                                    <textarea rows="3" cols="39" id="scrape_status" readonly></textarea>
                                 </div>
                                 
                             </div>
@@ -175,6 +180,9 @@
             </form>
         </div>
         <script>
+            var full_xls_list = [];
+            var stock_xls_list = [];
+
             $("#btn_start").on("click", function(){
                 var scrape_type = "";
                 $("[name='scrape_type']" ).each(function() {
@@ -191,7 +199,7 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        setInterval(get_scraping_status, 3000);
+                        setInterval(get_scraping_status, 500);
                     },
                     error: function (error) {
                     
@@ -207,7 +215,6 @@
             
                     success: function (result) { 
                         console.log(result);
-                        $("#scrape_status").text(result);
                         $("#scrape_status").val(result);
                     },
                     error: function (error) {
@@ -215,6 +222,63 @@
                     }       
                 });
             }
+
+            function get_xls_list() {
+                $.ajax({
+                    url: "/get_xls_list",
+                    type: "GET",
+                    datatype: "json",
+            
+                    success: function (result) { 
+                        console.log(result);
+                        const obj = JSON.parse(result);
+                        full_xls_list = obj.full.split("_");
+                        stock_xls_list = obj.stock.split("_");
+
+                        display_xls_list()
+
+                        console.log(obj.full);
+                        console.log(obj.stock);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }       
+                });
+            }
+
+            function display_xls_list() {
+                console.log($("#download_type").prop("selectedIndex") );
+                if ($("#download_type").prop("selectedIndex") == 0 || $("#download_type").prop("selectedIndex") == 2 ) {
+                    if (full_xls_list.length > 0) {
+                        $("#recent_date").val(full_xls_list[0]);
+                        if (full_xls_list.length > 1) {
+                            var ss = "";
+                            for (var i = 1; i < full_xls_list.length; i++ ) {
+                                ss += "<option>" + full_xls_list[i] + "</option>";
+                            }
+                            $("#compare_date").html(ss);
+                        }
+                    }
+                } else {
+                    if (stock_xls_list.length > 0) {
+                        $("#recent_date").val(stock_xls_list[0]);
+                        if (stock_xls_list.length > 1) {
+                            var ss = "";
+                            for (var i = 1; i < stock_xls_list.length; i++ ) {
+                                ss += "<option>" + stock_xls_list[i] + "</option>";
+                            }
+                            $("#compare_date").html(ss);
+                        }
+                    }
+                }
+            }
+
+            $("#download_type").on("change", function(){
+                console.log("onchange");
+                display_xls_list();
+            });
+
+            get_xls_list();
         </script>
     </body>
 </html>

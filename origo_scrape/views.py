@@ -5,11 +5,15 @@ from django.contrib.auth.models import User
 from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
+from os.path import join, dirname
 from .origo import scrape_status as origo_scrape_status
+import glob, os
+
 
 # dotenv_path = join(dirname(__file__), '.env')
 # load_dotenv(dotenv_path)
-
+cur_path = dirname(__file__)
+root_path = cur_path[:cur_path.rfind("\\")]
 cur_site = ""
 
 def index(request):
@@ -33,6 +37,22 @@ def get_scraping_status(request):
     if cur_site == "origo" :
         res = origo_scrape_status
         res = t.status
+    
+    return HttpResponse(res)
+    
+
+def get_xls_list(request):
+    global root_path
+    products_arr = []
+    stock_arr = []
+    res = ""
+    for file in glob.glob(join(root_path, "xls", "products-*.xlsx")):
+        products_arr.append(file[file.rfind(os.path.sep) + 10 : -5])
+    for file in glob.glob(join(root_path, "xls", "stock-*.xlsx")):
+        stock_arr.append(file[file.rfind(os.path.sep) + 7 : -5])
+    products_arr.sort(reverse=True)
+    stock_arr.sort(reverse=True)
+    res = '{"full": "' + '_'.join(products_arr) + '", "stock": "' + '_'.join(stock_arr) + '"}'
     
     return HttpResponse(res)
 
