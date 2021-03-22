@@ -17,6 +17,7 @@ def index(request):
 
 
 def start_scrape(request):
+    global t
     print("start_scrape")
     site = request.GET["site"]
     scrape_type = request.GET["scrape_type"]
@@ -31,6 +32,7 @@ def get_scraping_status(request):
     res = ""
     if cur_site == "origo" :
         res = origo_scrape_status
+        res = t.status
     
     return HttpResponse(res)
 

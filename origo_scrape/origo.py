@@ -35,9 +35,7 @@ def my_logging(log, msg):
     log.propagate = False
 
 
-def status_publishing(text) :
-    global scrape_status
-    scrape_status = text
+
 
 
 class Origo_Thread(Thread):
@@ -46,10 +44,11 @@ class Origo_Thread(Thread):
         Thread.__init__(self)
         self.scrape_type = scrape_type
         self.log = logging.getLogger("a")  # root logger
+        self.status = ""
 
 
     def login(self, mail, driver) :   
-        status_publishing("login") 
+        self.status_publishing("login") 
         my_logging(self.log, "login ...")
         driver.get('https://origo-online.origo.ie')
         mail_address = mail[0]
@@ -364,6 +363,12 @@ class Origo_Thread(Thread):
         
         print("#" * 50)
         print("count = " + str(product_count))
+
+
+    def status_publishing(self,text) :
+        global scrape_status
+        scrape_status = text
+        self.status = text
 
 
 
