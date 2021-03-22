@@ -191,7 +191,7 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        setTimeout(get_scraping_status, 1000);
+                        setInterval(get_scraping_status, 1000);
                     },
                     error: function (error) {
                     
@@ -208,13 +208,11 @@
                     success: function (result) { 
                         console.log(result);
                         $("#scrape_status").text(scrape_status);
-                        setTimeout(get_scraping_status, 1000);
                     },
                     error: function (error) {
                     
                     }       
                 });
-                // setInterval(get_scraping_status, 1000);
             }
         </script>
     </body>
