@@ -11,22 +11,40 @@ from os.path import join, dirname
 from dotenv import load_dotenv
 import xlsxwriter
 from threading import Thread
-
+import logging
+from logging.handlers import RotatingFileHandler
 
 
 cur_path = dirname(__file__)
-dotenv_path = join(cur_path[:cur_path.rfind("\\")], '.env')
-load_dotenv(dotenv_path)
+root_path = join(cur_path[:cur_path.rfind("\\")], '.env')
+load_dotenv(root_path)
+log_file_size = 10
+formatter = logging.Formatter('%(asctime)s    %(message)s')
+
+
+def my_logging(log, msg):
+    log.propagate = True
+    fileh = RotatingFileHandler(join(root_path, "log", "origo.log"), mode='a', maxBytes=log_file_size*1024, backupCount=2, encoding='utf-8', delay=0)
+    # ('logs/' + f_name + '.log', 'a')
+    fileh.setFormatter(formatter)
+    for hdlr in log.handlers[:]:  # remove all old handlers
+        log.removeHandler(hdlr)
+    log.addHandler(fileh)
+    log.critical(msg)
+    log.propagate = False
+
 
 class Origo_Thread(Thread):
  
     def __init__(self, scrape_type):
         Thread.__init__(self)
         self.scrape_type = scrape_type
+        self.log = logging.getLogger("a")  # root logger
 
 
     def login(self, mail, driver) :   
         print("login") 
+        my_logging(self.log, "login ...")
         driver.get('https://origo-online.origo.ie')
         mail_address = mail[0]
         mail_pass = mail[1]
@@ -74,11 +92,13 @@ class Origo_Thread(Thread):
         driver = webdriver.Chrome (executable_path = path, options = chrome_options )
         # driver.maximize_window()
         print("start chrome")
+        my_logging(self.log, "start chrome")
         #Remove navigator.webdriver Flag using JavaScript
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
         # driver.set_window_size(1200,900)
         try:
             print("try")
+            my_logging(self.log, "try")
             self.login(mail, driver)
             time.sleep(5)
             if self.scrape_type == "stock":
