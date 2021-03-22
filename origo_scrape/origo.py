@@ -85,7 +85,7 @@ class Origo_Thread(Thread):
         print("userAgent = " + userAgent)
         chrome_options = webdriver.ChromeOptions()
         chrome_options.add_argument('user-agent={0}'.format(userAgent))
-        # chrome_options.add_argument("--headless")
+        chrome_options.add_argument("--headless")
         chrome_options.add_argument("window-size=1280,800")
         chrome_options.add_argument('--log-level=0')
         path = join(dirname(__file__), 'webdriver', 'chromedriver.exe')
