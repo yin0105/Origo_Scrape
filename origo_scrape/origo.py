@@ -13,6 +13,11 @@ import xlsxwriter
 from threading import Thread
 
 
+
+cur_path = dirname(__file__)
+dotenv_path = join(cur_path[:cur_path.rfind("\\")], '.env')
+load_dotenv(dotenv_path)
+
 class Origo_Thread(Thread):
  
     def __init__(self, scrape_type):
