@@ -208,6 +208,7 @@
                     success: function (result) { 
                         console.log(result);
                         $("#scrape_status").text(result);
+                        $("#scrape_status").val(result);
                     },
                     error: function (error) {
                     
