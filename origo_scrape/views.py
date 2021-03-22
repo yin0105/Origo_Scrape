@@ -5,9 +5,12 @@ from django.contrib.auth.models import User
 from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
+from .origo import scrape_status as origo_scrape_status
 
 # dotenv_path = join(dirname(__file__), '.env')
 # load_dotenv(dotenv_path)
+
+cur_site = ""
 
 def index(request):
     return render(request, "index.html")
@@ -22,6 +25,14 @@ def start_scrape(request):
     t.start()
 
     return HttpResponse("ok")
+
+
+def get_scraping_status(request):
+    res = ""
+    if cur_site == "origo" :
+        res = origo_scrape_status
+    
+    return HttpResponse(res)
 
 # def register_user(request):
 
