@@ -178,7 +178,7 @@
                     }
                 });
                 $.ajax({
-                    url: "/start_scrape/" + scrape_type + "/" + $("#site").val(),
+                    url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + $("#site").val(),
                     type: "GET",
                     datatype: "text",
             
