@@ -1,4 +1,4 @@
 env/
 merge_compare.py
 ./origo.py
-__pycache__/
+origo_scrape/__pycache__/

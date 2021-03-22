@@ -16,8 +16,8 @@ from logging.handlers import RotatingFileHandler
 
 
 cur_path = dirname(__file__)
-root_path = join(cur_path[:cur_path.rfind("\\")], '.env')
-load_dotenv(root_path)
+root_path = cur_path[:cur_path.rfind("\\")]
+load_dotenv(join(root_path, '.env'))
 log_file_size = 10
 formatter = logging.Formatter('%(asctime)s    %(message)s')
 
