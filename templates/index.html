@@ -191,7 +191,7 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        setInterval(get_scraping_status, 1000);
+                        setInterval(get_scraping_status, 3000);
                     },
                     error: function (error) {
                     
@@ -207,7 +207,7 @@
             
                     success: function (result) { 
                         console.log(result);
-                        $("#scrape_status").text(scrape_status);
+                        $("#scrape_status").text(result);
                     },
                     error: function (error) {
                     
