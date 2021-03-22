@@ -56,6 +56,7 @@ class Origo_Thread(Thread):
         mail_address = os.environ.get('MAIL_ADDRESS')
         mail_password = os.environ.get('MAIL_PASSWORD')
         mail = [mail_address, mail_password]
+        print(mail_address + " :: " + mail_password)
 
         ua = UserAgent()
         userAgent = ua.random
