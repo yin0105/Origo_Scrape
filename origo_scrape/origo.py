@@ -57,23 +57,23 @@ class Origo_Thread(Thread):
         try:
             email_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//input[@name='UserName' and @type='email']")))
             email_field.send_keys(mail_address)
-            status_publishing("Email address inserted")
+            self.status_publishing("Email address inserted")
         except TimeoutException:
-            status_publishing("Email field is not ready")
+            self.status_publishing("Email field is not ready")
 
         try:
             password_field = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//input[@type='password' and @name='Password']")))
             password_field.send_keys(mail_pass)
-            status_publishing("Password inserted")
+            self.status_publishing("Password inserted")
         except TimeoutException:
-            status_publishing("Password is not ready")
+            self.status_publishing("Password is not ready")
 
         try:
             login_button = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//button[@type='submit']")))
             login_button.click()
-            status_publishing("Login button clicked")
+            self.status_publishing("Login button clicked")
         except TimeoutException:
-            status_publishing("login button is not ready")
+            self.status_publishing("login button is not ready")
  
     def run(self):
         now = datetime.now()
@@ -96,7 +96,7 @@ class Origo_Thread(Thread):
         path = join(dirname(__file__), 'webdriver', 'chromedriver.exe')
         driver = webdriver.Chrome (executable_path = path, options = chrome_options )
         # driver.maximize_window()
-        status_publishing("start chrome")
+        self.status_publishing("start chrome")
         my_logging(self.log, "start chrome")
         #Remove navigator.webdriver Flag using JavaScript
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
@@ -113,7 +113,7 @@ class Origo_Thread(Thread):
             print("time = " + str(datetime.now() - now))
         except Exception as e:
             # driver.save_screenshot(datetime.now().strftime("screenshot_%Y%m%d_%H%M%S_%f.png"))
-            status_publishing(e)
+            self.status_publishing(e)
         finally:
             pass
 
@@ -124,7 +124,7 @@ class Origo_Thread(Thread):
                 try:
                     return fx(*args, **kwargs)
                 except Exception as e:
-                    status_publishing(message)
+                    self.status_publishing(message)
                     raise e
             return inner
         return decorator
@@ -142,7 +142,7 @@ class Origo_Thread(Thread):
                 shopping_cart_btn = WebDriverWait(driver, 2).until(EC.presence_of_element_located((By.XPATH, "//div[@class='basket' and @data-src='/basket/summary']")))
                 break
             except TimeoutException:
-                status_publishing("main window is not ready")
+                self.status_publishing("main window is not ready")
 
         main_categories = WebDriverWait(driver, 2).until(EC.presence_of_all_elements_located((By.XPATH, "//ul[@class='nav-list nav-list-root']/li[@class='nav-item nav-item-root']")))
         for main_category in main_categories:        
@@ -173,7 +173,7 @@ class Origo_Thread(Thread):
             category_href_dict = {}
             for main_category in category_href_dict_2:
                 for category_href in category_href_dict_2[main_category]:
-                    status_publishing(category_href)
+                    self.status_publishing(category_href)
                     
                 # find if there are products.
                 
@@ -280,7 +280,7 @@ class Origo_Thread(Thread):
                             href_list.append(product.get_attribute("href"))
 
                         for href in href_list:
-                            status_publishing(href)
+                            self.status_publishing(href)
                             try:
                                 driver.get(href)
                                 try:
@@ -369,6 +369,7 @@ class Origo_Thread(Thread):
         global scrape_status
         scrape_status = text
         self.status = text
+        print("self.status = " + self.status)
 
 
 
