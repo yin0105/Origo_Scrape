@@ -180,7 +180,7 @@ class Origo_Thread(Thread):
 ################# Calculate Total Products Count  #################################
         while len(category_href_dict) > 0:
             category_href_dict_2 = category_href_dict.copy()
-            total_category_href_dict.update(category_href_dict)
+            # total_category_href_dict.update(category_href_dict)
             category_href_dict = {}
             for main_category in category_href_dict_2:
                 for category_href in category_href_dict_2[main_category]:
@@ -252,196 +252,200 @@ class Origo_Thread(Thread):
                     if no_product_found :continue
                     print("Escape while loop")
 
-                # Search all products
-                    count_msg = driver.find_element_by_xpath("//div[@class='counter-inside']").text
-                    products_total_count += int(count_msg.split(" ")[0])
-        print("##"*50)
-        print("Total Count = " + str(products_total_count))
-        print("time = " + str(datetime.now() - now))
+#                 # Search all products
+#                     count_msg = driver.find_element_by_xpath("//div[@class='counter-inside']").text
+#                     products_total_count += int(count_msg.split(" ")[0])
+#         print("##"*50)
+#         print("Total Count = " + str(products_total_count))
+#         print("time = " + str(datetime.now() - now))
 
 
-############### Main Scrape #########################
+# ############### Main Scrape #########################
         
-        for main_category in total_category_href_dict:
-            for category_href in category_href_dict_2[main_category]:
-                self.status_publishing(category_href)
+#         for main_category in total_category_href_dict:
+#             for category_href in category_href_dict_2[main_category]:
+#                 self.status_publishing(category_href)
                 
-            # find if there are products.
+#             # find if there are products.
             
-                no_product_found = True
+#                 no_product_found = True
 
-                try:
-                    driver.get(category_href)
-                    try:
-                        elem = driver.find_element_by_xpath("//div[@id='productListPage']/div[@class='msg-block']")
-                        print("find msg-block")
-                    except:
-                        try:
-                            elem = driver.find_element_by_xpath("//div[@id='product-list-panel']")
-                            print("find list panel")
-                            no_product_found = False
-                        except:
-                            try:
-                                elems = driver.find_elements_by_xpath("//div[@id='flexiPage']/div[@class='flexi-row']//div[@class='column']/div/a")
-                                print("find flexi-row")
-                                sub_category_href_arr = []
-                                for sub_category in elems:
-                                    sub_category_href = sub_category.get_attribute('href')            
-                                    print(sub_category_href)
-                                    sub_category_href_arr.append(sub_category_href)
-                                category_href_dict[main_category] = sub_category_href_arr
-                            except:
-                                print("find nothing")
-                except:
-                    while True:
-                        try:
+#                 try:
+#                     driver.get(category_href)
+#                     try:
+#                         elem = driver.find_element_by_xpath("//div[@id='productListPage']/div[@class='msg-block']")
+#                         print("find msg-block")
+#                     except:
+#                         try:
+#                             elem = driver.find_element_by_xpath("//div[@id='product-list-panel']")
+#                             print("find list panel")
+#                             no_product_found = False
+#                         except:
+#                             try:
+#                                 elems = driver.find_elements_by_xpath("//div[@id='flexiPage']/div[@class='flexi-row']//div[@class='column']/div/a")
+#                                 print("find flexi-row")
+#                                 sub_category_href_arr = []
+#                                 for sub_category in elems:
+#                                     sub_category_href = sub_category.get_attribute('href')            
+#                                     print(sub_category_href)
+#                                     sub_category_href_arr.append(sub_category_href)
+#                                 category_href_dict[main_category] = sub_category_href_arr
+#                             except:
+#                                 print("find nothing")
+#                 except:
+#                     while True:
+#                         try:
                             
-                        # find "No products found"
+#                         # find "No products found"
                             
-                            elem = driver.find_element_by_xpath("//div[@id='productListPage']/div[@class='msg-block']")
-                            print("find msg-block")
-                            break
-                        except:
-                            pass
+#                             elem = driver.find_element_by_xpath("//div[@id='productListPage']/div[@class='msg-block']")
+#                             print("find msg-block")
+#                             break
+#                         except:
+#                             pass
 
-                        try:
-                            elem = driver.find_element_by_xpath("//div[@id='product-list-panel']")
-                            print("find list panel")
-                            no_product_found = False
-                            break
-                        except:
-                            pass
+#                         try:
+#                             elem = driver.find_element_by_xpath("//div[@id='product-list-panel']")
+#                             print("find list panel")
+#                             no_product_found = False
+#                             break
+#                         except:
+#                             pass
 
-                        try:
+#                         try:
                             
-                        # find "No products found"
+#                         # find "No products found"
                             
-                            elems = driver.find_elements_by_xpath("//div[@id='flexiPage']/div[@class='flexi-row']//div[@class='column']/div/a[not(contains(@href, '/cuisinart-'))]")
-                            print("find flexi-row")
-                            sub_category_href_arr = []
-                            for sub_category in elems:
-                                sub_category_href = sub_category.get_attribute('href')            
-                                print(sub_category_href)
-                                sub_category_href_arr.append(sub_category_href)
-                            category_href_dict[main_category] = sub_category_href_arr
-                            break
-                        except:
-                            print("find nothing")
-                            continue
+#                             elems = driver.find_elements_by_xpath("//div[@id='flexiPage']/div[@class='flexi-row']//div[@class='column']/div/a[not(contains(@href, '/cuisinart-'))]")
+#                             print("find flexi-row")
+#                             sub_category_href_arr = []
+#                             for sub_category in elems:
+#                                 sub_category_href = sub_category.get_attribute('href')            
+#                                 print(sub_category_href)
+#                                 sub_category_href_arr.append(sub_category_href)
+#                             category_href_dict[main_category] = sub_category_href_arr
+#                             break
+#                         except:
+#                             print("find nothing")
+#                             continue
 
-                if no_product_found :continue
-                print("Escape while loop")
+#                 if no_product_found :continue
+#                 print("Escape while loop")
 
             # Search all products
                 
-                products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
-                products_count = len(products)
-                products_category_count = int(driver.find_element_by_xpath("//div[@class='counter-inside']").text)
+                    products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
+                    products_count = len(products)
+                    products_category_count = int(driver.find_element_by_xpath("//div[@class='counter-inside']").text)
 
-                print("products_category_count = " + str(products_category_count) + "  :: products_count = " + str(products_count))
-                if products_count != products_category_count:
-                    products_pre_count = 0
+                    print("products_category_count = " + str(products_category_count) + "  :: products_count = " + str(products_count))
+                    # if products_count != products_category_count:
                     while products_count != products_category_count:
-                        products_pre_count = products_count
                         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-                        time.sleep(15)
-                        products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
+                        products = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, "//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")))
+                        # while True:
+                        #     try:
+                        #         time.sleep(1)
+                        #         products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
                         products_count = len(products)
-                        print("pre_count = " + str(products_pre_count) + "  count = " + str(products_count))
+                        print("products_category_count = " + str(products_category_count) + "  count = " + str(products_count))
+                            #     break
+                            # except:
+                            #     pass
 
-                if stock_scrape == 1: 
-                
-                # Stock Scrape
-                
-                    products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li")
-                    for product in products:
-                        product_id = product.find_element_by_xpath(".//div[@class='product-id-stock']/span[@class='product-id']/span[@class='product-id-value']").text
-                        product_indication = product.find_element_by_xpath(".//div[@class='product-id-stock']/span[@class='stock-indication']/span")
-                        product_stock = "0"
-                        try:
-                            product_stock = product_indication.find_element_by_xpath(".//span[@class='stock-amount']").text
-                        except:
-                            pass
-
-                        if not product_id in products_dict: 
-                            products_dict[product_id] = [str(product_id), product_stock]
-                        product_count += 1
-                
-                else:
-                
-                # Full Scrape
-                
-                    href_list = []
-                    for product in products:
-                        href_list.append(product.get_attribute("href"))
-
-                    for href in href_list:
-                        self.status_publishing(href)
-                        try:
-                            driver.get(href)
+                    if stock_scrape == 1: 
+                    
+                    # Stock Scrape
+                    
+                        products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li")
+                        for product in products:
+                            product_id = product.find_element_by_xpath(".//div[@class='product-id-stock']/span[@class='product-id']/span[@class='product-id-value']").text
+                            product_indication = product.find_element_by_xpath(".//div[@class='product-id-stock']/span[@class='stock-indication']/span")
+                            product_stock = "0"
                             try:
-                                product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                print("found product title")
+                                product_stock = product_indication.find_element_by_xpath(".//span[@class='stock-amount']").text
                             except:
-                                print("Not found product title")
                                 pass
-                        except:
-                            while True:
+
+                            if not product_id in products_dict: 
+                                products_dict[product_id] = [str(product_id), product_stock]
+                            product_count += 1
+                    
+                    else:
+                    
+                    # Full Scrape
+                    
+                        href_list = []
+                        for product in products:
+                            href_list.append(product.get_attribute("href"))
+
+                        for href in href_list:
+                            self.status_publishing(href)
+                            try:
+                                driver.get(href)
                                 try:
                                     product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
                                     print("found product title")
-                                    break
                                 except:
                                     print("Not found product title")
                                     pass
-                        product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
-                        product_stock = "0"
+                            except:
+                                while True:
+                                    try:
+                                        product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
+                                        print("found product title")
+                                        break
+                                    except:
+                                        print("Not found product title")
+                                        pass
+                            product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                            product_stock = "0"
 
-                        try:
-                            product_in_stock = driver.find_element_by_xpath("//span[@class='stock-row']//span[@class='stock-amount']")
-                            product_stock = product_in_stock.text
-                        except:
-                            pass
+                            try:
+                                product_in_stock = driver.find_element_by_xpath("//span[@class='stock-row']//span[@class='stock-amount']")
+                                product_stock = product_in_stock.text
+                            except:
+                                pass
 
-                        product_price_1 = driver.find_element_by_xpath("((//span[@class='prices']/div)[1]/span)[1]").text.replace(".", "").replace(",", ".")
-                        product_list_1 = driver.find_element_by_xpath("((//span[@class='prices']/div)[1]/span)[2]").text
-                        product_price_2 = driver.find_element_by_xpath("((//span[@class='prices']/div)[2]/span)[1]").text.replace(".", "").replace(",", ".")
-                        product_list_2 = driver.find_element_by_xpath("((//span[@class='prices']/div)[2]/span)[2]").text
+                            product_price_1 = driver.find_element_by_xpath("((//span[@class='prices']/div)[1]/span)[1]").text.replace(".", "").replace(",", ".")
+                            product_list_1 = driver.find_element_by_xpath("((//span[@class='prices']/div)[1]/span)[2]").text
+                            product_price_2 = driver.find_element_by_xpath("((//span[@class='prices']/div)[2]/span)[1]").text.replace(".", "").replace(",", ".")
+                            product_list_2 = driver.find_element_by_xpath("((//span[@class='prices']/div)[2]/span)[2]").text
 
-                        product_description = ""
-                        try:
-                            product_description = driver.find_element_by_xpath("//div[@id='description']/div[@class='description']").text
-                        except:
-                            pass
+                            product_description = ""
+                            try:
+                                product_description = driver.find_element_by_xpath("//div[@id='description']/div[@class='description']").text
+                            except:
+                                pass
 
-                        img_src = driver.find_element_by_xpath("//div[@class='carousel-image-m-wrapper']//img").get_attribute('src')
+                            img_src = driver.find_element_by_xpath("//div[@class='carousel-image-m-wrapper']//img").get_attribute('src')
 
-                        product_category_path_elems = driver.find_elements_by_xpath("//li[contains(@class, 'arrow-red')]/a")
-                        product_category_paths = []
-                        for product_category_path_elem in product_category_path_elems:
-                            product_category_paths.append(product_category_path_elem.text)
+                            product_category_path_elems = driver.find_elements_by_xpath("//li[contains(@class, 'arrow-red')]/a")
+                            product_category_paths = []
+                            for product_category_path_elem in product_category_path_elems:
+                                product_category_paths.append(product_category_path_elem.text)
 
-                        product_category = " > ".join(product_category_paths)
+                            product_category = " > ".join(product_category_paths)
 
-                        product_count += 1
-                        
-                        product_price_list = 0
-                        product_price_nett = 0
-                        if product_list_2 == "nett":
-                            product_price_list = product_price_1
-                            product_price_nett = product_price_2
-                        else:
-                            product_price_list = product_price_2
-                            product_price_nett = ""
-                        
-                        try:
-                            if product_id in products_dict: 
-                                print("duplicate")
-                                products_dict[product_id][1] += " ; " + product_category
+                            product_count += 1
+                            
+                            product_price_list = 0
+                            product_price_nett = 0
+                            if product_list_2 == "nett":
+                                product_price_list = product_price_1
+                                product_price_nett = product_price_2
                             else:
-                                products_dict[product_id] = [str(product_id), product_category, product_title, product_stock, product_price_list, product_price_nett, product_description, href, img_src]
-                        except:
-                            pass
+                                product_price_list = product_price_2
+                                product_price_nett = ""
+                            
+                            try:
+                                if product_id in products_dict: 
+                                    print("duplicate")
+                                    products_dict[product_id][1] += " ; " + product_category
+                                else:
+                                    products_dict[product_id] = [str(product_id), product_category, product_title, product_stock, product_price_list, product_price_nett, product_description, href, img_src]
+                            except:
+                                pass
         
         i = -1                                              
         for val in fields:
