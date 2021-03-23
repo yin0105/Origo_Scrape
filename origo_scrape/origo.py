@@ -339,6 +339,8 @@ class Origo_Thread(Thread):
                     count_msg = driver.find_element_by_xpath("//div[@class='counter-inside']").text
                     products_category_count = int(count_msg.split(" ")[0])
 
+                    if products_category_count > 2000 : continue
+
                     print("products_category_count = " + str(products_category_count) + "  :: products_count = " + str(products_count))
                     # if products_count != products_category_count:
                     while products_count != products_category_count:
