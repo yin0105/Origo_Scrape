@@ -336,7 +336,8 @@ class Origo_Thread(Thread):
                 
                     products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
                     products_count = len(products)
-                    products_category_count = int(driver.find_element_by_xpath("//div[@class='counter-inside']").text)
+                    count_msg = driver.find_element_by_xpath("//div[@class='counter-inside']").text
+                    products_category_count = int(count_msg.split(" ")[0])
 
                     print("products_category_count = " + str(products_category_count) + "  :: products_count = " + str(products_count))
                     # if products_count != products_category_count:
