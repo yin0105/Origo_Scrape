@@ -184,6 +184,7 @@ class Origo_Thread(Thread):
             category_href_dict = {}
             for main_category in category_href_dict_2:
                 for category_href in category_href_dict_2[main_category]:
+                    self.status_publishing(category_href)
                     
                 # find if there are products.
                 
