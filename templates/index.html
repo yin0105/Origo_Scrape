@@ -226,10 +226,11 @@
                     success: function (result) { 
                         console.log(result);
                         $("#scrape_status").val(result);
-                        setTimeout(get_scraping_status, 2000);
-                        if (result == "scraping is ended") {
+                        
+                        if (result != "scraping is ended") {
                             // Stop get_scraping_status
-                            clearInterval(get_scraping_status_interval);
+                            setTimeout(get_scraping_status, 2000);
+                            // clearInterval(get_scraping_status_interval);
                         }
                     },
                     error: function (error) {
@@ -325,23 +326,8 @@
                         diff = 1;
                         break;
                 }
-
-                // $.ajax({
-                //     url: "/download?stock=" + stock + "&diff=" + diff + "&recent=" + $("#recent_date").val() + "&compare=" +  + $("#compare_date").val(),
-                //     type: "GET",
-                //     datatype: "text",
-            
-                //     success: function (result) { 
-                //         console.log(result);
-                //     },
-                //     error: function (error) {
-                //         console.log(error);
-                //     }       
-                // });
+                
                 window.open("/download?stock=" + stock + "&diff=" + diff + "&recent=" + $("#recent_date").val() + "&compare=" + $("#compare_date").val(), "_blank");
-                // console.log($("#compare_date").html());
-                // console.log($("#compare_date").val());
-                // console.log("/download?stock=" + stock + "&diff=" + diff + "&recent=" + $("#recent_date").val() + "&compare=" + $("#compare_date").val());
             });
 
             get_xls_list();
