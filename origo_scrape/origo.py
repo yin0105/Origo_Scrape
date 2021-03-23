@@ -254,7 +254,7 @@ class Origo_Thread(Thread):
                         while products_pre_count != products_count:
                             products_pre_count = products_count
                             driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-                            time.sleep(5)
+                            time.sleep(8)
                             products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
                             products_count = len(products)
                             print("pre_count = " + str(products_pre_count) + "  count = " + str(products_count))
