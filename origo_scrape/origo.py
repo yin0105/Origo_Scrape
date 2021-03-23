@@ -343,16 +343,18 @@ class Origo_Thread(Thread):
                     # if products_count != products_category_count:
                     while products_count != products_category_count:
                         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
-                        products = WebDriverWait(driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")))
-                        # while True:
-                        #     try:
-                        #         time.sleep(1)
-                        #         products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
-                        products_count = len(products)
-                        print("products_category_count = " + str(products_category_count) + "  count = " + str(products_count))
-                            #     break
-                            # except:
-                            #     pass
+                        while True:
+                            try:
+                                products = WebDriverWait(driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")))
+                                # while True:
+                                #     try:
+                                #         time.sleep(1)
+                                #         products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")
+                                products_count = len(products)
+                                print("products_category_count = " + str(products_category_count) + "  count = " + str(products_count))
+                                break
+                            except:
+                                pass
 
                     if stock_scrape == 1: 
                     
