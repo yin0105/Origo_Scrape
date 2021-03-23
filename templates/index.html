@@ -189,6 +189,7 @@
         <script>
             var full_xls_list = [];
             var stock_xls_list = [];
+            var get_scraping_status_interval;
 
             $("#btn_start").on("click", function(){
                 var scrape_type = "";
@@ -206,7 +207,7 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        setInterval(get_scraping_status, 500);
+                        get_scraping_status_interval = setInterval(get_scraping_status, 500);
                     },
                     error: function (error) {
                     
@@ -225,6 +226,7 @@
                         $("#scrape_status").val(result);
                         if (result == "scraping is ended") {
                             // Stop get_scraping_status
+                            clearInterval(get_scraping_status_interval);
                         }
                     },
                     error: function (error) {
