@@ -273,10 +273,7 @@ class Origo_Thread(Thread):
                             except:
                                 pass
 
-                            if product_id in products_dict: 
-                                print("duplicate")
-                                products_dict[product_id][1] += " ; " + product_category
-                            else:
+                            if not product_id in products_dict: 
                                 products_dict[product_id] = [str(product_id), product_stock]
                             product_count += 1
                     
