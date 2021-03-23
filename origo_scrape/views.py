@@ -7,7 +7,9 @@ from django.http import HttpResponse
 from .origo import Origo_Thread
 from os.path import join, dirname
 from .origo import scrape_status as origo_scrape_status
-import glob, os, zipfile
+import glob, os, zipfile, openpyxl, xlsxwriter
+from os import path
+
 # from filewrap import Filewrapper
 
 
@@ -59,28 +61,150 @@ def get_xls_list(request):
 
 
 def download(request):
-    file_name = "products"
-    print(request.GET["stock"])
-    if request.GET["stock"] == "1" : file_name = "stock"
-    if request.GET["diff"] == "1" : file_name += "-diff"
-    file_name += "-" + request.GET["recent"]
-    if request.GET["diff"] == "1" : file_name += "_" + request.GET["compare"]
-    # file_name = "products-2021-0320-020256"
+# Create file_name & file_path
+    stock = request.GET["stock"]
+    diff = request.GET["diff"]
+    recent = request.GET["recent"]
+    compare = request.GET["compare"]
+    
+    file_prefix = "products-"
+    if stock == "1" : file_name = "stock-"
+    
+    file_name = file_prefix
+    if diff == "1" : file_name += "diff-"
+    file_name += recent
+    if diff == "1" : file_name += "_" + compare
+    zipfile_name = file_name + ".zip"
     file_name += ".xlsx"
     print("file_name = " + file_name)
 
-    file_path = os.path.join(root_path, "xls", file_name)
-    print("file_path = " + file_path)
+    file_path = []
+    if diff =="1":
+        file_path.append(os.path.join(root_path, "xls", file_prefix + "add-" + recent + "_" + compare + ".xlsx"))
+        file_path.append(os.path.join(root_path, "xls", file_prefix + "remove-" + recent + "_" + compare + ".xlsx"))
+        zipfile_name = file_prefix + "compare-" + recent + "_" + compare + ".zip"
+    else:
+        file_path.append(os.path.join(root_path, "xls", file_name))
 
     response = HttpResponse(content_type='application/zip')
     zf = zipfile.ZipFile(response, 'w')
 
-    with open(file_path, 'rb') as fh:
-        zf.writestr(file_name, fh.read())
+    for file in file_path:
+        # Generate if there is no different .xlsx file
+        print("file = " + file)
+        if diff == "1" and not path.exists(file) :
+            compare_xlsx(stock, recent, compare)
+        with open(file, 'rb') as fh:
+            zf.writestr(file[file.rfind(os.path.sep) + 1:], fh.read())
 
-    # return as zipfile
-    response['Content-Disposition'] = f'attachment; filename={file_name + ".zip"}'
+        # return as zipfile
+    response['Content-Disposition'] = f'attachment; filename={zipfile_name}'
     return response
+
+
+def compare_xlsx(stock, recent, compare) :
+    print("*************  compare_xlsx")
+    global root_path
+
+    fields = ['id', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
+    file_prefix = "products-"
+    if stock == "1": 
+        fields = ['id', 'stock']
+        file_prefix = "stock-"
+    
+# Find a .xlsx file to compare
+    # xlsx_list = []
+    # for file in glob.glob(join(root_path, "xls", file_prefix + "-*.xlsx")):
+    #     xlsx_list.append(file)
+
+    # xlsx_list.sort()
+    # print(xlsx_list[-1][9:-5])
+    # if len(xlsx_list) < 2:
+    #     return "There are no .xlsx files to compare."
+    # print(xlsx_list[-2][9:-5])
+
+    # compare_file_name = "compare-" + xlsx_list[-1][9:-5] + "_" + xlsx_list[-2][9:-5] + ".xlsx"
+    add_file_name = file_prefix + "add-" + recent + "_" + compare + ".xlsx"
+    remove_file_name = file_prefix + "remove-" + recent + "_" + compare + ".xlsx"
+    older_products = {}
+    newer_products = {}
+
+    wb_obj = openpyxl.load_workbook(join(root_path, "xls", file_prefix + compare + ".xlsx"))
+    sheet = wb_obj.active
+
+    older_products = {}
+
+    for i, row in enumerate(sheet.iter_rows(values_only=True)):
+        if i > 0:
+            try:
+                if row[0] in older_products: continue
+            except:
+                pass
+            older_products[row[0]] = row
+    print(str(len(older_products)))
+
+    wb_obj = openpyxl.load_workbook(join(root_path, "xls", file_prefix + recent + ".xlsx"))
+    sheet = wb_obj.active
+
+    newer_products = {}
+
+    for i, row in enumerate(sheet.iter_rows(values_only=True)):
+        if i > 0:
+            try:
+                if row[0] in newer_products: continue
+            except:
+                pass
+            newer_products[row[0]] = row
+    print(str(len(newer_products)))
+
+    older_products_2 = older_products.copy()
+
+    for row in older_products_2:
+        try:
+            if row in newer_products:
+                del older_products[row]
+                del newer_products[row]
+        except:
+            pass
+
+    workbook = xlsxwriter.Workbook(join(root_path, "xls", add_file_name))
+    worksheet = workbook.add_worksheet("Add")
+
+    i = -1                                              
+    for val in fields:
+        i += 1
+        worksheet.write(0, i, val)
+    
+    i = 0
+    for row in newer_products:
+        i += 1
+        j = -1
+        for val in newer_products[row]:
+            j += 1
+            worksheet.write(i, j, val)
+    workbook.close()
+
+    workbook = xlsxwriter.Workbook(join(root_path, "xls", remove_file_name))
+    worksheet = workbook.add_worksheet("Remove")
+
+    i = -1                                              
+    for val in fields:
+        i += 1
+        worksheet.write(0, i, val)
+    
+    i = 0
+    for row in older_products:
+        i += 1
+        j = -1
+        for val in older_products[row]:
+            j += 1
+            worksheet.write(i, j, val)
+    workbook.close()
+    
+    print("##############  add #############")
+    print(str(len(newer_products)))
+    print("##############  remove #############")
+    print(str(len(older_products)))
 
 
 # path('download/<int:stock>/<int:diff>/<string:recent>/<string:compare>
