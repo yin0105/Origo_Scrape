@@ -466,7 +466,6 @@ class Origo_Thread(Thread):
         global scrape_status
         scrape_status = text
         self.status = text
-        print("self.status = " + self.status)
 
 
 
