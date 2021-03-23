@@ -208,7 +208,8 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        get_scraping_status_interval = setInterval(get_scraping_status, 2000);
+                        // get_scraping_status_interval = setInterval(get_scraping_status, 2000);
+                        setTimeout(get_scraping_status, 2000);
                     },
                     error: function (error) {
                     
@@ -225,6 +226,7 @@
                     success: function (result) { 
                         console.log(result);
                         $("#scrape_status").val(result);
+                        setTimeout(get_scraping_status, 2000);
                         if (result == "scraping is ended") {
                             // Stop get_scraping_status
                             clearInterval(get_scraping_status_interval);

@@ -252,8 +252,8 @@ class Origo_Thread(Thread):
                     print("Escape while loop")
 
                 # Search all products
-                   
-                    products_total_count += int(driver.find_element_by_xpath("//div[@class='counter-inside']").text)
+                    count_msg = driver.find_element_by_xpath("//div[@class='counter-inside']").text
+                    products_total_count += int(count_msg.split(" ")[0])
         print("##"*50)
         print("Total Count = " + str(products_total_count))
         print("time = " + str(datetime.now() - now))
