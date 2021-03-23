@@ -367,6 +367,8 @@ class Origo_Thread(Thread):
         print("#" * 50)
         print("count = " + str(product_count))
 
+        self.status_publishing("scraping is ended")
+
 
     def status_publishing(self,text) :
         global scrape_status

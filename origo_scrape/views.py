@@ -7,7 +7,8 @@ from django.http import HttpResponse
 from .origo import Origo_Thread
 from os.path import join, dirname
 from .origo import scrape_status as origo_scrape_status
-import glob, os
+import glob, os, zipfile
+# from filewrap import Filewrapper
 
 
 # dotenv_path = join(dirname(__file__), '.env')
@@ -55,6 +56,50 @@ def get_xls_list(request):
     res = '{"full": "' + '_'.join(products_arr) + '", "stock": "' + '_'.join(stock_arr) + '"}'
     
     return HttpResponse(res)
+
+
+def download(request):
+    file_name = "products"
+    if request.GET["stock"] == 1 : file_name = "stock"
+    if request.GET["diff"] == 1 : file_name += "-diff"
+    file_name += "-" + request.GET["recent"]
+    if request.GET["diff"] == 1 : file_name += "_" + request.GET["compare"]
+    file_name = "products-2021-0320-020256"
+    file_name += ".xlsx"
+    print("file_name = " + file_name)
+
+    file_path = os.path.join(root_path, "xls", file_name)
+    print("file_path = " + file_path)
+
+    response = HttpResponse(content_type='application/zip')
+    zf = zipfile.ZipFile(response, 'w')
+
+    # create the zipfile in memory using writestr
+    # add a readme
+
+    # retrieve snippets from ORM and them to zipfile
+    # scripts = Script.objects.all()
+    # for snippet in scripts:
+    with open(file_path, 'rb') as fh:
+        zf.writestr(file_name, fh.read())
+
+    # return as zipfile
+    response['Content-Disposition'] = f'attachment; filename={file_name + ".zip"}'
+    return response
+
+
+# path('download/<int:stock>/<int:diff>/<string:recent>/<string:compare>
+# def download(request):
+#     file_name = "products"
+#     if request.GET["stock"] == 1 : file_name = "stock"
+#     if request.GET["diff"] == 1 : file_name += "-diff"
+#     file_path = os.path.join(root_path, "xls", file_name + ".xlsx")
+#     if os.path.exists(file_path):
+#         with open(file_path, 'rb', encoding="utf-8") as fh:
+#             response = HttpResponse(fh.read(), content_type="application/vnd.ms-excel")
+#             response['Content-Disposition'] = 'inline; filename=' + os.path.basename(file_path)
+#             return response
+#     raise HttpResponse("")
 
 # def register_user(request):
 
