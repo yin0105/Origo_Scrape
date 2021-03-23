@@ -60,11 +60,12 @@ def get_xls_list(request):
 
 def download(request):
     file_name = "products"
-    if request.GET["stock"] == 1 : file_name = "stock"
-    if request.GET["diff"] == 1 : file_name += "-diff"
+    print(request.GET["stock"])
+    if request.GET["stock"] == "1" : file_name = "stock"
+    if request.GET["diff"] == "1" : file_name += "-diff"
     file_name += "-" + request.GET["recent"]
-    if request.GET["diff"] == 1 : file_name += "_" + request.GET["compare"]
-    file_name = "products-2021-0320-020256"
+    if request.GET["diff"] == "1" : file_name += "_" + request.GET["compare"]
+    # file_name = "products-2021-0320-020256"
     file_name += ".xlsx"
     print("file_name = " + file_name)
 
@@ -74,12 +75,6 @@ def download(request):
     response = HttpResponse(content_type='application/zip')
     zf = zipfile.ZipFile(response, 'w')
 
-    # create the zipfile in memory using writestr
-    # add a readme
-
-    # retrieve snippets from ORM and them to zipfile
-    # scripts = Script.objects.all()
-    # for snippet in scripts:
     with open(file_path, 'rb') as fh:
         zf.writestr(file_name, fh.read())
 
