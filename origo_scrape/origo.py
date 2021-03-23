@@ -47,6 +47,7 @@ class Origo_Thread(Thread):
         self.scrape_type = scrape_type
         self.log = logging.getLogger("a")  # root logger
         self.status = ""
+        
 
 
     def login(self, mail, driver) :   
@@ -134,6 +135,8 @@ class Origo_Thread(Thread):
 
     def loop_main_category(self, driver, stock_scrape=0):
         global root_path
+
+        now = datetime.now()####################################
         category_href_dict = {}
         products_dict = {}
         product_count = 0
