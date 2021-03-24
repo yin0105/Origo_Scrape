@@ -27,7 +27,8 @@ SECRET_KEY = '15!$jo-u^l$2sexc&w7(d@=wb(@t#@i0%i4uyagd_m^a$q$qmh'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', 'origo-scrape-22-env.eba-mbsz2ryj.sa-east-1.elasticbeanstalk.com', 'origo-scrape-3-env.eba-bmn3nak4.eu-west-1.elasticbeanstalk.com']
+# 
 
 
 # Application definition
@@ -122,8 +123,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, 'static'),
-)
+STATIC_ROOT = '/var/app/current/static'
+# STATIC_ROOT = os.path.join(BASE_DIR, "static")
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+print("STATIC_ROOT = " + STATIC_ROOT)
+
+# STATICFILES_DIRS = (
+#     os.path.join(BASE_DIR, "static"),
+# )

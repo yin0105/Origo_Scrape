@@ -16,7 +16,8 @@ from logging.handlers import RotatingFileHandler
 
 
 cur_path = dirname(__file__)
-root_path = cur_path[:cur_path.rfind("\\")]
+root_path = cur_path[:cur_path.rfind(os.path.sep)]
+# root_path = root_path[:root_path.rfind(os.path.sep)]
 load_dotenv(join(root_path, '.env'))
 log_file_size = 10
 formatter = logging.Formatter('%(asctime)s    %(message)s')
@@ -92,11 +93,12 @@ class Origo_Thread(Thread):
         userAgent = " ".join(userAgent)
         print("userAgent = " + userAgent)
         chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument('user-agent={0}'.format(userAgent))
+        # chrome_options.add_argument('user-agent={0}'.format(userAgent))
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("window-size=1280,800")
         chrome_options.add_argument('--log-level=0')
-        path = join(dirname(__file__), 'webdriver', 'chromedriver.exe')
+        # path = join(dirname(__file__), 'webdriver', 'chromedriver.exe') # Windows
+        path = join(dirname(__file__), 'webdriver', 'chromedriver') # Linux
         driver = webdriver.Chrome (executable_path = path, options = chrome_options )
         # driver.maximize_window()
         self.status_publishing("start chrome")
@@ -389,21 +391,23 @@ class Origo_Thread(Thread):
                             try:
                                 driver.get(href)
                                 try:
-                                    product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                    print("found product title")
+                                    # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
+                                    product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                    print("found product id")
                                 except:
-                                    print("Not found product title")
+                                    print("Not found product id")
                                     pass
                             except:
                                 while True:
                                     try:
-                                        product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                        print("found product title")
+                                        # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
+                                        product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                        print("found product id")
                                         break
                                     except:
-                                        print("Not found product title")
+                                        print("Not found product id")
                                         pass
-                            product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                            # product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
                             product_stock = "0"
 
                             try:
@@ -474,8 +478,10 @@ class Origo_Thread(Thread):
 
     def status_publishing(self,text) :
         global scrape_status
+
         scrape_status = text
         self.status = text
+        print(text)
 
 
 

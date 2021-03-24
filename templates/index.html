@@ -41,9 +41,9 @@
 
             div.container {
                 width: 800px;
-                /* margin-top: 50px;
-                margin-bottom: 30px; */
-                margin: auto;
+                margin-top: 40px;
+                margin-bottom: 30px;
+                /* margin: auto; */
                 background-color:#FFFCF2;
                 padding-top:30px;
                 padding-bottom: 30px;
@@ -231,10 +231,13 @@
                             // Stop get_scraping_status
                             setTimeout(get_scraping_status, 2000);
                             // clearInterval(get_scraping_status_interval);
+                        } else {
+                            // Get xls file list again
+                            get_xls_list();
                         }
                     },
                     error: function (error) {
-                    
+                        console.log(error);
                     }       
                 });
             }
@@ -274,6 +277,9 @@
                             }
                             $("#compare_date").html(ss);
                         }
+                    } else {
+                        $("#recent_date").val("");
+                        $("#compare_date").html("");
                     }
                 } else {
                     if (stock_xls_list.length > 0) {
@@ -285,6 +291,9 @@
                             }
                             $("#compare_date").html(ss);
                         }
+                    } else {
+                        $("#recent_date").val("");
+                        $("#compare_date").html("");
                     }
                 }
                 // $('#compare_date').selectpicker('refresh');

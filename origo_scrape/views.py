@@ -16,7 +16,8 @@ from os import path
 # dotenv_path = join(dirname(__file__), '.env')
 # load_dotenv(dotenv_path)
 cur_path = dirname(__file__)
-root_path = cur_path[:cur_path.rfind("\\")]
+root_path = cur_path[:cur_path.rfind(os.path.sep)]
+# root_path = root_path[:root_path.rfind(os.path.sep)]
 cur_site = ""
 
 def index(request):
@@ -32,7 +33,7 @@ def start_scrape(request):
         t = Origo_Thread(scrape_type)
     t.start()
 
-    return HttpResponse("ok")
+    return HttpResponse(root_path)
 
 
 def get_scraping_status(request):
@@ -49,9 +50,9 @@ def get_xls_list(request):
     products_arr = []
     stock_arr = []
     res = ""
-    for file in glob.glob(join(root_path, "xls", "products-*.xlsx")):
+    for file in glob.glob(join(root_path, "xls", "products-2*.xlsx")):
         products_arr.append(file[file.rfind(os.path.sep) + 10 : -5])
-    for file in glob.glob(join(root_path, "xls", "stock-*.xlsx")):
+    for file in glob.glob(join(root_path, "xls", "stock-2*.xlsx")):
         stock_arr.append(file[file.rfind(os.path.sep) + 7 : -5])
     products_arr.sort(reverse=True)
     stock_arr.sort(reverse=True)
@@ -68,7 +69,7 @@ def download(request):
     compare = request.GET["compare"]
     
     file_prefix = "products-"
-    if stock == "1" : file_name = "stock-"
+    if stock == "1" : file_prefix = "stock-"
     
     file_name = file_prefix
     if diff == "1" : file_name += "diff-"

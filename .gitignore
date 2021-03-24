@@ -2,3 +2,7 @@ env/
 merge_compare.py
 ./origo.py
 origo_scrape/__pycache__/
+# Elastic Beanstalk Files
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
