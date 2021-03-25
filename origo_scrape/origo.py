@@ -349,7 +349,7 @@ class Origo_Thread(Thread):
                         driver.execute_script("window.scrollTo(0,document.body.scrollHeight)")
                         while True:
                             try:
-                                products = WebDriverWait(driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")))
+                                products = driver.find_elements_by_xpath("//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']") #WebDriverWait(driver, 20).until(EC.presence_of_all_elements_located((By.XPATH, "//ul[@id='list-of-products']/li//a[@class='hyp-thumbnail']")))
                                 # while True:
                                 #     try:
                                 #         time.sleep(1)
@@ -392,7 +392,8 @@ class Origo_Thread(Thread):
                                 driver.get(href)
                                 try:
                                     # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                    product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                    product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                                    # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
                                     print("found product id")
                                 except:
                                     print("Not found product id")
@@ -400,14 +401,16 @@ class Origo_Thread(Thread):
                             except:
                                 while True:
                                     try:
+                                        product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
                                         # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                        product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                        # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
                                         print("found product id")
                                         break
                                     except:
                                         print("Not found product id")
                                         pass
                             # product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                            product_title = driver.find_element_by_xpath("//h1[@class='font-product-title']").text
                             product_stock = "0"
 
                             try:
