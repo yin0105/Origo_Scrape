@@ -208,8 +208,8 @@
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
-                        // get_scraping_status_interval = setInterval(get_scraping_status, 2000);
-                        setTimeout(get_scraping_status, 2000);
+                        // get_scraping_status_interval = setInterval(get_scraping_status, 500);
+                        setTimeout(get_scraping_status, 500);
                     },
                     error: function (error) {
                     
@@ -229,7 +229,7 @@
                         
                         if (result != "scraping is ended") {
                             // Stop get_scraping_status
-                            setTimeout(get_scraping_status, 2000);
+                            setTimeout(get_scraping_status, 500);
                             // clearInterval(get_scraping_status_interval);
                         } else {
                             // Get xls file list again

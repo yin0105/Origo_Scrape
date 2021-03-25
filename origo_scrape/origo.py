@@ -388,29 +388,40 @@ class Origo_Thread(Thread):
 
                         for href in href_list:
                             self.status_publishing(href)
-                            try:
-                                driver.get(href)
+                            # try:
+                            driver.get(href)
+                            while True:
                                 try:
-                                    # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
                                     product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                                    product_title = driver.find_element_by_xpath("//h1[@class='font-product-title']").text
+                                    # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
                                     # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
                                     print("found product id")
+                                    break
                                 except:
                                     print("Not found product id")
                                     pass
-                            except:
-                                while True:
-                                    try:
-                                        product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
-                                        # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
-                                        # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
-                                        print("found product id")
-                                        break
-                                    except:
-                                        print("Not found product id")
-                                        pass
+                                # try:
+                                #     # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
+                                #     product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                                #     # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                #     print("found product id")
+                                # except:
+                                #     print("Not found product id")
+                                #     pass
+                            # except:
+                                # while True:
+                                #     try:
+                                #         product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
+                                #         # product_title = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//h1[@class='font-product-title']"))).text
+                                #         # product_id = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[@itemprop='productID']"))).text
+                                #         print("found product id")
+                                #         break
+                                #     except:
+                                #         print("Not found product id")
+                                #         pass
                             # product_id = driver.find_element_by_xpath("//span[@itemprop='productID']").text
-                            product_title = driver.find_element_by_xpath("//h1[@class='font-product-title']").text
+                            
                             product_stock = "0"
 
                             try:
