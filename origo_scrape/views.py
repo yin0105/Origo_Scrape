@@ -2,6 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
+from django.template import loader
 from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
@@ -21,7 +22,11 @@ root_path = cur_path[:cur_path.rfind(os.path.sep)]
 cur_site = ""
 
 def index(request):
-    return render(request, "index.html")
+    # return render(request, "index.html")
+    context = {}
+    context['sites'] = [{"url": "https://origo-online.origo.iiie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply-it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
+    html_template = loader.get_template( 'index.html' )
+    return HttpResponse(html_template.render(context, request))
 
 
 def start_scrape(request):

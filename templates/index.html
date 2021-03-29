@@ -21,6 +21,7 @@
         <style>
             div.row {
                 margin: 40px 0px;
+                align-items: center;
             }
 
             div.row div.row, div.form-check{
@@ -29,10 +30,9 @@
 
             .card-title {
                 font-size: 25px;
-                /* font-weight: bold; */
                 justify-content: center;
                 display: flex;
-                margin-bottom: 20px;
+                color: blue;
             }
 
             div.div-btn {
@@ -45,8 +45,7 @@
                 margin-bottom: 30px;
                 /* margin: auto; */
                 background-color:#FFFCF2;
-                padding-top:30px;
-                padding-bottom: 30px;
+                padding:30px;
                 border-radius: 30px;
             }
 
@@ -59,6 +58,10 @@
 
             .card {
                 background-color: #f9fff9;
+            }
+
+            .card-body {
+                padding-bottom: 10px;
             }
 
             .div-site {
@@ -87,100 +90,99 @@
                 Scrape     
             </h1>
             <form action="" method="post" class="form" role="form" name="my_form">
-                <div class="row justify-content-md-center div-site">
-                    <div class="col-md-4">
-                        Supplier Website :
-                    </div>
-                    <div class="col-md-8">
-                        <select class="custom-select" id="site" name="site">
-                            <option value="origo">https://origo-online.origo.ie</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="row justify-content-md-center">
-                    <div class="col-md-5">
-                        <div class="card">
+                {% for site in sites %}
+                    <div class="row justify-content-md-center">
+                        <div class="card w-100">
                             <div class="card-body">
-                                <div class="card-title">Scraping Type</div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="scrape_type" value="full" checked>
-                                    <label class="form-check-label" for="scrape_type">
-                                        Full Scraping
-                                    </label>
+                                <div class="card-title">{{ site.url }}</div>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="{{ site.short }}_scrape_type" value="full" checked>
+                                            <label class="form-check-label" for="{{ site.short }}_scrape_type">
+                                                Full Scraping
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="{{ site.short }}_scrape_type" value="stock">
+                                            <label class="form-check-label" for="{{ site.short }}_scrape_type">
+                                                Stock Scraping
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="row justify-content-md-center div-btn">
+                                            <button type="button" class="btn-fill btn-wd btn btn-success btn_start" id="{{ site.short }}_btn_start">Start Scraping</button>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="scrape_type" value="stock">
-                                    <label class="form-check-label" for="scrape_type">
-                                        Stock Scraping
-                                    </label>
-                                </div>
-                                <div class="row justify-content-md-center div-btn">
-                                    <button type="button" class="btn-fill btn-wd btn btn-success" id="btn_start" name="btn_start">Start Scraping</button>
+                                <div class="row">
+                                    <textarea rows="2" cols="84" id="{{ site.short }}_scrape_status" readonly></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-7">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="card-title">Scraping Process</div>
-                                <div class="form-group div-scrape-status">
-                                    <label for="scrape_status">Current Scraping Status :</label>
-                                    <!-- <input type="text" class="form-control" id="scrape_status" readonly> -->
-                                    <textarea rows="3" cols="39" id="scrape_status" readonly></textarea>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                {% endfor %}
+                    
 
                 <div class="row justify-content-md-center">
-                    <div class="col-md-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="card-title">Download</div>
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        Download Type :
-                                    </div>
-                                    <div class="col-md-7">
-                                        <select class="custom-select" id="download_type">
-                                            <option value="basic_full">Basic Data Download (Full)</option>
-                                            <option value="basic_stock">Basic Data Download (Stock)</option>
-                                            <option value="diff_full">Difference Data Download (Full)</option>
-                                            <option value="diff_stock">Difference Data Download (Stock)</option>
-                                            <!-- <option value="diff_chosen">Chosen Difference Data Download</option> -->
-                                        </select>
-                                    </div>
+                    <div class="card w-100">                        
+                        <div class="card-body">
+                            <div class="card-title">Download</div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    Supplier Website :
                                 </div>
+                                <div class="col-md-7">
+                                    <select class="custom-select" id="site" name="site">
+                                        {% for site in sites %}
+                                            <option value="{{ site.short }}">{{ site.url }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    Download Type :
+                                </div>
+                                <div class="col-md-7">
+                                    <select class="custom-select" id="download_type">
+                                        <option value="basic_full">Basic Data Download (Full)</option>
+                                        <option value="basic_stock">Basic Data Download (Stock)</option>
+                                        <option value="diff_full">Difference Data Download (Full)</option>
+                                        <option value="diff_stock">Difference Data Download (Stock)</option>
+                                        <!-- <option value="diff_chosen">Chosen Difference Data Download</option> -->
+                                    </select>
+                                </div>
+                            </div>
 
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        The most recent data :
-                                    </div>
-                                    <div class="col-md-7">
-                                        <input type="text" class="form-control" id="recent_date" readonly>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    The most recent data :
                                 </div>
+                                <div class="col-md-7">
+                                    <input type="text" class="form-control" id="recent_date" readonly>
+                                </div>
+                            </div>
 
-                                <div class="row">
-                                    <div class="col-md-5">
-                                        The data to compare :
-                                    </div>
-                                    <div class="col-md-7">
-                                        <select class="custom-select" id="compare_date">
-                                            <option value="111">Choose...</option>
-                                            <option value="1">One</option>
-                                            <option value="2">Two</option>
-                                            <option value="3">Three</option>
-                                        </select>
-                                    </div>
+                            <div class="row">
+                                <div class="col-md-5">
+                                    The data to compare :
                                 </div>
-                                
-                                <div class="row justify-content-md-center div-btn">
-                                    <button type="button" class="btn-fill btn-wd btn btn-success" id="btn_download" name="btn_download">Download</button>
+                                <div class="col-md-7">
+                                    <select class="custom-select" id="compare_date">
+                                        <option value="111">Choose...</option>
+                                        <option value="1">One</option>
+                                        <option value="2">Two</option>
+                                        <option value="3">Three</option>
+                                    </select>
                                 </div>
+                            </div>
+                            
+                            <div class="row justify-content-md-center div-btn">
+                                <button type="button" class="btn-fill btn-wd btn btn-success" id="btn_download" name="btn_download">Download</button>
                             </div>
                         </div>
                     </div>
@@ -192,8 +194,10 @@
             var stock_xls_list = [];
             var get_scraping_status_interval;
 
-            $("#btn_start").on("click", function(){
+            $(".btn_start").on("click", function(){
                 var scrape_type = "";
+                var prefix = $(this).attr("id");
+                console.log("prefix = " + prefix);
                 $("[name='scrape_type']" ).each(function() {
                     console.log($(this ).prop("checked"));
                     if ($(this).prop("checked") == true) {
@@ -201,20 +205,20 @@
                         return false;
                     }
                 });
-                $.ajax({
-                    url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + $("#site").val(),
-                    type: "GET",
-                    datatype: "text",
+                // $.ajax({
+                //     url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + $("#site").val(),
+                //     type: "GET",
+                //     datatype: "text",
             
-                    success: function (result) { 
-                        console.log("Start Scraping . . .");
-                        // get_scraping_status_interval = setInterval(get_scraping_status, 500);
-                        setTimeout(get_scraping_status, 500);
-                    },
-                    error: function (error) {
+                //     success: function (result) { 
+                //         console.log("Start Scraping . . .");
+                //         // get_scraping_status_interval = setInterval(get_scraping_status, 500);
+                //         setTimeout(get_scraping_status, 500);
+                //     },
+                //     error: function (error) {
                     
-                    }       
-                });
+                //     }       
+                // });
             });
 
             function get_scraping_status() {
