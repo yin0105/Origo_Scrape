@@ -51,7 +51,7 @@ class Supply_it_Thread(Thread):
     def login(self, mail, driver) :   
         self.status_publishing("loging in") 
         my_logging(self.log, "login ...")
-        driver.get('https://www.supply-it.ie/')
+        driver.get('https://online.furlongflooring.com/pgpower/')
         mail_address = mail[0]
         mail_pass = mail[1]
         time.sleep(5)
