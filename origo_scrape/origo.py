@@ -82,8 +82,8 @@ class Origo_Thread(Thread):
  
     def run(self):
         now = datetime.now()
-        mail_address = os.environ.get('MAIL_ADDRESS')
-        mail_password = os.environ.get('MAIL_PASSWORD')
+        mail_address = os.environ.get('ORIGO_MAIL_ADDRESS')
+        mail_password = os.environ.get('ORIGO_MAIL_PASSWORD')
         mail = [mail_address, mail_password]
         print(mail_address + " :: " + mail_password)
 

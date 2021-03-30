@@ -6,8 +6,9 @@ from django.template import loader
 from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
+from .supply_it import Supply_it_Thread
 from os.path import join, dirname
-from .origo import scrape_status as origo_scrape_status
+# from .origo import scrape_status as origo_scrape_status
 import glob, os, zipfile, openpyxl, xlsxwriter
 from os import path
 
@@ -24,34 +25,42 @@ cur_site = ""
 def index(request):
     # return render(request, "index.html")
     context = {}
-    context['sites'] = [{"url": "https://origo-online.origo.iiie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply-it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
+    context['sites'] = [{"url": "https://origo-online.origo.ie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply-it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
     html_template = loader.get_template( 'index.html' )
     return HttpResponse(html_template.render(context, request))
 
 
 def start_scrape(request):
-    global t, cur_site
+    global t_origo, t_supply_it, t_ff, cur_site
+
     print("start_scrape")
     cur_site = request.GET["site"]
     scrape_type = request.GET["scrape_type"]
     if cur_site == "origo":
-        t = Origo_Thread(scrape_type)
-    t.start()
+        t_origo = Origo_Thread(scrape_type)
+        t_origo.start()
+    elif cur_site == "supply-it":
+        t_supply_it = Supply_it_Thread(scrape_type)
+        t_supply_it.start()
 
     return HttpResponse(root_path)
 
 
 def get_scraping_status(request):
+    global t_origo, t_supply_it, t_ff
     res = ""
     cur_site = request.GET["site"]
 
     if cur_site == "origo" :
-        res = origo_scrape_status
+        res = t_origo.status
+    elif cur_site == "supply-it" :
+        res = t_supply_it.status
+        # res = origo_scrape_status
     # if cur_site == "supply-it" :
     #     res = supply_it_scrape_status
     # if cur_site == "furlongflooring" :
     #     res = furlongflooring_scrape_status
-    res = t.status
+        
     
     return HttpResponse(res)
     
