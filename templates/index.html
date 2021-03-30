@@ -197,28 +197,32 @@
             $(".btn_start").on("click", function(){
                 var scrape_type = "";
                 var prefix = $(this).attr("id");
+                prefix = prefix.substring(0, prefix.length-10);
+
                 console.log("prefix = " + prefix);
-                $("[name='scrape_type']" ).each(function() {
+                $("[name='" + prefix + "_scrape_type']" ).each(function() {
                     console.log($(this ).prop("checked"));
                     if ($(this).prop("checked") == true) {
                         scrape_type = $(this).val();
+                        console.log("scrape_type = " + scrape_type);
                         return false;
                     }
                 });
-                // $.ajax({
-                //     url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + $("#site").val(),
-                //     type: "GET",
-                //     datatype: "text",
+                console.log("/start_scrape?scrape_type=" + scrape_type + "&site=" + prefix);
+                $.ajax({
+                    url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + prefix,
+                    type: "GET",
+                    datatype: "text",
             
-                //     success: function (result) { 
-                //         console.log("Start Scraping . . .");
-                //         // get_scraping_status_interval = setInterval(get_scraping_status, 500);
-                //         setTimeout(get_scraping_status, 500);
-                //     },
-                //     error: function (error) {
+                    success: function (result) { 
+                        console.log("Start Scraping . . .");
+                        // get_scraping_status_interval = setInterval(get_scraping_status, 500);
+                        setTimeout(get_scraping_status, 500);
+                    },
+                    error: function (error) {
                     
-                //     }       
-                // });
+                    }       
+                });
             });
 
             function get_scraping_status() {

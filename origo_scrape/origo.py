@@ -13,6 +13,7 @@ import xlsxwriter
 from threading import Thread
 import logging
 from logging.handlers import RotatingFileHandler
+import platform
 
 
 cur_path = dirname(__file__)
@@ -94,11 +95,13 @@ class Origo_Thread(Thread):
         print("userAgent = " + userAgent)
         chrome_options = webdriver.ChromeOptions()
         # chrome_options.add_argument('user-agent={0}'.format(userAgent))
-        chrome_options.add_argument("--headless")
+        # chrome_options.add_argument("--headless")
         chrome_options.add_argument("window-size=1280,800")
         chrome_options.add_argument('--log-level=0')
-        # path = join(dirname(__file__), 'webdriver', 'chromedriver.exe') # Windows
-        path = join(dirname(__file__), 'webdriver', 'chromedriver') # Linux
+        path = join(dirname(__file__), 'webdriver', 'chromedriver.exe') # Windows
+        if platform.system() == "Linux":
+            path = join(dirname(__file__), 'webdriver', 'chromedriver') # Linux
+
         driver = webdriver.Chrome (executable_path = path, options = chrome_options )
         # driver.maximize_window()
         self.status_publishing("start chrome")
