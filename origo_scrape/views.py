@@ -21,6 +21,9 @@ cur_path = dirname(__file__)
 root_path = cur_path[:cur_path.rfind(os.path.sep)]
 # root_path = root_path[:root_path.rfind(os.path.sep)]
 cur_site = ""
+# t_origo = ""
+# t_supply_it = ""
+# t_ff = ""
 
 def index(request):
     # return render(request, "index.html")
