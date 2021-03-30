@@ -196,11 +196,11 @@
 
             $(".btn_start").on("click", function(){
                 var scrape_type = "";
-                var prefix = $(this).attr("id");
-                prefix = prefix.substring(0, prefix.length-10);
+                var site = $(this).attr("id");
+                site = site.substring(0, site.length-10);
 
-                console.log("prefix = " + prefix);
-                $("[name='" + prefix + "_scrape_type']" ).each(function() {
+                console.log("site = " + site);
+                $("[name='" + site + "_scrape_type']" ).each(function() {
                     console.log($(this ).prop("checked"));
                     if ($(this).prop("checked") == true) {
                         scrape_type = $(this).val();
@@ -208,16 +208,17 @@
                         return false;
                     }
                 });
-                console.log("/start_scrape?scrape_type=" + scrape_type + "&site=" + prefix);
+                console.log("/start_scrape?scrape_type=" + scrape_type + "&site=" + site);
                 $.ajax({
-                    url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + prefix,
+                    url: "/start_scrape?scrape_type=" + scrape_type + "&site=" + site,
                     type: "GET",
                     datatype: "text",
             
                     success: function (result) { 
                         console.log("Start Scraping . . .");
                         // get_scraping_status_interval = setInterval(get_scraping_status, 500);
-                        setTimeout(get_scraping_status, 500);
+                        setTimeout(function() { get_scraping_status(site); }, 1000);
+                        // setTimeout(get_scraping_status, 500);
                     },
                     error: function (error) {
                     
@@ -225,19 +226,20 @@
                 });
             });
 
-            function get_scraping_status() {
+            function get_scraping_status(site) {
                 $.ajax({
-                    url: "/get_scraping_status",
+                    url: "/get_scraping_status?site=" + site,
                     type: "GET",
                     datatype: "text",
             
                     success: function (result) { 
                         console.log(result);
-                        $("#scrape_status").val(result);
+                        $("#" + site + "_scrape_status").val(result);
                         
                         if (result != "scraping is ended") {
                             // Stop get_scraping_status
-                            setTimeout(get_scraping_status, 500);
+                            setTimeout(function() { get_scraping_status(site); }, 1000);
+                            // setTimeout(get_scraping_status, 500);
                             // clearInterval(get_scraping_status_interval);
                         } else {
                             // Get xls file list again
