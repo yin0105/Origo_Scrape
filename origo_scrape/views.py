@@ -43,9 +43,15 @@ def start_scrape(request):
 
 def get_scraping_status(request):
     res = ""
+    cur_site = request.GET["site"]
+
     if cur_site == "origo" :
         res = origo_scrape_status
-        res = t.status
+    # if cur_site == "supply-it" :
+    #     res = supply_it_scrape_status
+    # if cur_site == "furlongflooring" :
+    #     res = furlongflooring_scrape_status
+    res = t.status
     
     return HttpResponse(res)
     
