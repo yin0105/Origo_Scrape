@@ -7,6 +7,7 @@ from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
 from .supply_it import Supply_it_Thread
+from .furlongflooring import FF_Thread
 from os.path import join, dirname
 # from .origo import scrape_status as origo_scrape_status
 import glob, os, zipfile, openpyxl, xlsxwriter
@@ -45,6 +46,9 @@ def start_scrape(request):
     elif cur_site == "supply-it":
         t_supply_it = Supply_it_Thread(scrape_type)
         t_supply_it.start()
+    elif cur_site == "furlongflooring":
+        t_ff = FF_Thread(scrape_type)
+        t_ff.start()
 
     return HttpResponse(root_path)
 
@@ -58,6 +62,8 @@ def get_scraping_status(request):
         res = t_origo.status
     elif cur_site == "supply-it" :
         res = t_supply_it.status
+    elif cur_site == "furlongflooring" :
+        res = t_ff.status
         # res = origo_scrape_status
     # if cur_site == "supply-it" :
     #     res = supply_it_scrape_status

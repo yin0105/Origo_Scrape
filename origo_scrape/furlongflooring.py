@@ -39,7 +39,7 @@ def my_logging(log, msg):
     log.propagate = False
 
 
-class Supply_it_Thread(Thread):
+class FF_Thread(Thread):
  
     def __init__(self, scrape_type):
         Thread.__init__(self)
@@ -56,55 +56,55 @@ class Supply_it_Thread(Thread):
         mail_pass = mail[1]
         time.sleep(5)
 
-    # Click Sign In Link
+    # Login Id
         while True:
             try:
-                sign_in = driver.find_element_by_xpath("//div[@class='panel header']//li[@class='authorization-link']/a")
-                sign_in.click()
-                self.status_publishing("Sign In Button is clicked.")
+                login_id_field = driver.find_element_by_xpath("//input[@name='User']")
+                login_id_field.send_keys(mail_address)
+                self.status_publishing("Login Id is inserted")
                 break
             except TimeoutException:
-                self.status_publishing("Sign In Button has not found")
-                time.sleep(1)
-
-    # Email
-        while True:
-            try:
-                email_field = driver.find_element_by_xpath("//div[@class='panel header']//input[@name='login[username]']")
-                email_field.send_keys(mail_address)
-                self.status_publishing("Email address is inserted")
-                break
-            except TimeoutException:
-                self.status_publishing("Email field has not found")
+                self.status_publishing("Login Id field has not found")
                 time.sleep(1)
 
     # Password
         while True:
             try:
-                password_field = driver.find_element_by_xpath("//div[@class='panel header']//input[@name='login[password]']")
+                password_field = driver.find_element_by_xpath("//input[@name='Password']")
                 password_field.send_keys(mail_pass)
                 self.status_publishing("Password is inserted")
                 break
             except TimeoutException:
                 self.status_publishing("Password field has not found")
                 time.sleep(1)
-                
+       
     # Sign In Button
         while True:
             try:
-                password_field = driver.find_element_by_xpath("//div[@class='panel header']//button[@type='submit' and ./span='Sign In']")
-                password_field.click()
+                sign_in = driver.find_element_by_xpath("//input[@value='Sign In']")
+                sign_in.click()
                 self.status_publishing("Sign In Button is clicked")
                 break
             except TimeoutException:
                 self.status_publishing("Sign In Button has not found")
                 time.sleep(1)
+
+    # 'View Stock by Class or Range' Button
+        while True:
+            try:
+                view_btn = driver.find_element_by_xpath("//input[@value='View Stock by Class or Range']         ")
+                view_btn.click()
+                self.status_publishing("'View Stock by Class or Range' Button is clicked")
+                break
+            except TimeoutException:
+                self.status_publishing("'View Stock by Class or Range' Button has not found")
+                time.sleep(1)
         
          
     def run(self):
         now = datetime.now()
-        mail_address = os.environ.get('SUPPLY_IT_MAIL_ADDRESS')
-        mail_password = os.environ.get('SUPPLY_IT_MAIL_PASSWORD')
+        mail_address = os.environ.get('FF_LOGIN_ID')
+        mail_password = os.environ.get('FF_PASSWORD')
         mail = [mail_address, mail_password]
         print(mail_address + " :: " + mail_password)
 
@@ -178,9 +178,10 @@ class Supply_it_Thread(Thread):
 
         # Get Category Links
         category_link_list = []
+        # First Column
         while True:
             try:
-                category_links = driver.find_elements_by_xpath("//li[@class='ui-menu-item level2 ']/a")
+                category_links = driver.find_elements_by_xpath("//*[@id='pagewrapper']/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/table/tbody/tr[2]/td[1]//ul/li/a")
                 self.status_publishing("Category links had got.")
                 break
             except TimeoutException:
@@ -188,119 +189,185 @@ class Supply_it_Thread(Thread):
                 time.sleep(1)
 
         for link in category_links:
-            category_link_list.append(link.get_attribute("href"))
+            if not link.get_attribute("href") in category_link_list:
+                category_link_list.append(link.get_attribute("href"))
+
+        # Second Column
+        while True:
+            try:
+                category_links = driver.find_elements_by_xpath("//*[@id='pagewrapper']/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/table/tbody/tr[2]/td[2]//ul/li/a")
+                self.status_publishing("Category links had got.")
+                break
+            except TimeoutException:
+                self.status_publishing("Category links have not found")
+                time.sleep(1)
+
+        for link in category_links:
+            if not link.get_attribute("href") in category_link_list:
+                category_link_list.append(link.get_attribute("href"))
 
         print(category_link_list)
 
+        # Get Sub Category link list **** begin ****
+        sub_category_link_list = []
+        sub_category_links = driver.find_elements_by_xpath("//*[@id='pagewrapper']/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/table/tbody/tr[2]/td[3]/table/tbody/tr/td/ul/li/a")
+        for link in sub_category_links:
+            if not link.get_attribute("href") in sub_category_link_list:
+                sub_category_link_list.append(link.get_attribute("href"))
+
         for link in category_link_list:
             self.status_publishing(link)
-            driver.get(link + "?product_list_limit=all")
+            driver.get(link)
+            time.sleep(1)
+
+            sub_category_links = driver.find_elements_by_xpath("//*[@id='pagewrapper']/table[2]/tbody/tr/td/table/tbody/tr/td[2]/div/table/tbody/tr[2]/td[3]/table/tbody/tr/td/ul/li/a")
+            for link in sub_category_links:
+                if not link.get_attribute("href") in sub_category_link_list:
+                    sub_category_link_list.append(link.get_attribute("href"))
+        # Get Sub Category link list **** end ****
+
+        # 
+        for link in sub_category_link_list:
+            driver.get(link)
             time.sleep(1)
             
-            # Get Category
             while True:
                 try:
-                    category_parts = driver.find_elements_by_xpath("//li[contains(@class, 'item category')]")
-                    # self.status_publishing("Category had got.")
+                    head_list_elem = driver.find_elements_by_xpath("html/body/div/table[2]/tbody/tr/td/table/tbody/tr[not(contains(@class, 'stocktd'))]/td")                    
                     break
-                except TimeoutException:
-                    self.status_publishing("Category has not found")
-                    time.sleep(1)
-            category = " > ".join([p.text for p in category_parts])
-            print("category = " + category)
+                except:
+                    pass
+            
+            head_list = []
+            for head in head_list_elem:
+                if head.text == "Pattern Id": 
+                    head_list.append("Pattern")
+                else:
+                    head_list.append(head.text)
 
-            # Get Products
-            while True:
-                try:
-                    products = driver.find_elements_by_xpath("//div[@class='products wrapper grid columns6  products-grid']//li")
-                    # self.status_publishing("Products list had got.")
-                    break
-                except TimeoutException:
-                    self.status_publishing("Products list has not found")
-                    time.sleep(1)
-
-            # Get Product details
-            if stock_scrape == 0:
+            product_list = driver.find_elements_by_xpath("html/body/div/table[2]/tbody/tr/td/table/tbody/tr[contains(@class, 'stocktd')]")
+            
+            for product in product_list:
+                product_detail = {}
+                for field, item in zip(head_list, product.find_elements_by_xpath("./td")):
+                    product_detail[field] = item.text
                 
-            # Full Scrape
-                product_link_list = {}
+                print(product_detail)
                 
-                # Get product_id and product_details file name
-                for product in products:
-                    product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
-                    product_id = product_part_1.get_attribute("data-product-id")
-                    product_link_elem = product.find_element_by_xpath("//div[@class='product photo product-item-photo']/a")
-                    product_link_list[product_id] = product_link_elem.get_attribute("href")
+                if product_detail["Item"] in products_dict: 
+                    print("duplicate")
+                    products_dict[product_detail["Item"]]["Range"] += " ; " + product_detail["Range"]
+                else:
+                    products_dict[product_detail["Item"]] = product_detail
 
-                # Get product details
-                for product_id in product_link_list:
-                    self.status_publishing(product_link_list[product_id])
-                    driver.get(product_link_list[product_id])
-                    time.sleep(1)
-                    product_title = driver.find_element_by_xpath("//h1[@class='page-title']/span").text
-                    product_sku = driver.find_element_by_xpath("//div[@itemprop='sku']").text
-                    product_stock = "Out"
-                    try:
-                        product_stock_avail = driver.find_element_by_xpath("//div[@title='Availability' and @class='stock available']")
-                        product_stock = "In"
-                    except:
-                        pass
+
+
+
+
+        #     # Get Category
+        #     while True:
+        #         try:
+        #             category_parts = driver.find_elements_by_xpath("//li[contains(@class, 'item category')]")
+        #             # self.status_publishing("Category had got.")
+        #             break
+        #         except TimeoutException:
+        #             self.status_publishing("Category has not found")
+        #             time.sleep(1)
+        #     category = " > ".join([p.text for p in category_parts])
+        #     print("category = " + category)
+
+        #     # Get Products
+        #     while True:
+        #         try:
+        #             products = driver.find_elements_by_xpath("//div[@class='products wrapper grid columns6  products-grid']//li")
+        #             # self.status_publishing("Products list had got.")
+        #             break
+        #         except TimeoutException:
+        #             self.status_publishing("Products list has not found")
+        #             time.sleep(1)
+
+        #     # Get Product details
+        #     if stock_scrape == 0:
+                
+        #     # Full Scrape
+        #         product_link_list = {}
+                
+        #         # Get product_id and product_details file name
+        #         for product in products:
+        #             product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
+        #             product_id = product_part_1.get_attribute("data-product-id")
+        #             product_link_elem = product.find_element_by_xpath("//div[@class='product photo product-item-photo']/a")
+        #             product_link_list[product_id] = product_link_elem.get_attribute("href")
+
+        #         # Get product details
+        #         for product_id in product_link_list:
+        #             self.status_publishing(product_link_list[product_id])
+        #             driver.get(product_link_list[product_id])
+        #             time.sleep(1)
+        #             product_title = driver.find_element_by_xpath("//h1[@class='page-title']/span").text
+        #             product_sku = driver.find_element_by_xpath("//div[@itemprop='sku']").text
+        #             product_stock = "Out"
+        #             try:
+        #                 product_stock_avail = driver.find_element_by_xpath("//div[@title='Availability' and @class='stock available']")
+        #                 product_stock = "In"
+        #             except:
+        #                 pass
                     
-                    product_price_list = driver.find_element_by_xpath("//div[@class='product-info-price']//span[@class='price-container price-final_price tax weee rewards_earn']//span[@class='price']").text
-                    product_price_nett = ""
-                    try:
-                        product_price_nett_elem = driver.find_element_by_xpath("//span[@class='price-container price-tier_price tax weee rewards_earn']//span[@class='price']")
-                        product_price_nett = product_price_nett_elem.text
-                    except:
-                        pass
+        #             product_price_list = driver.find_element_by_xpath("//div[@class='product-info-price']//span[@class='price-container price-final_price tax weee rewards_earn']//span[@class='price']").text
+        #             product_price_nett = ""
+        #             try:
+        #                 product_price_nett_elem = driver.find_element_by_xpath("//span[@class='price-container price-tier_price tax weee rewards_earn']//span[@class='price']")
+        #                 product_price_nett = product_price_nett_elem.text
+        #             except:
+        #                 pass
                     
-                    product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
-                    product_img = driver.find_element_by_xpath("(//div[contains(@class,'fotorama__stage__shaft')]//img)[1]").get_attribute("src")
+        #             product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
+        #             product_img = driver.find_element_by_xpath("(//div[contains(@class,'fotorama__stage__shaft')]//img)[1]").get_attribute("src")
 
-                    try:
-                        if product_id in products_dict: 
-                            print("duplicate")
-                            products_dict[product_id][1] += " ; " + category
-                        else:
-                            products_dict[product_id] = [str(product_id), product_sku, category, product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
-                    except:
-                        pass
-            else:
+        #             try:
+        #                 if product_id in products_dict: 
+        #                     print("duplicate")
+        #                     products_dict[product_id][1] += " ; " + category
+        #                 else:
+        #                     products_dict[product_id] = [str(product_id), product_sku, category, product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
+        #             except:
+        #                 pass
+        #     else:
 
-            # Stock Scrape
-                for product in products:
-                    product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
-                    product_id = product_part_1.get_attribute("data-product-id")
+        #     # Stock Scrape
+        #         for product in products:
+        #             product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
+        #             product_id = product_part_1.get_attribute("data-product-id")
                     
-                    product_stock = "In"
-                    try:
-                        product_stock_unavail = driver.find_element_by_xpath("//div[@class='stock unavailable']")
-                        product_stock = "Out"
-                    except:
-                        pass
+        #             product_stock = "In"
+        #             try:
+        #                 product_stock_unavail = driver.find_element_by_xpath("//div[@class='stock unavailable']")
+        #                 product_stock = "Out"
+        #             except:
+        #                 pass
 
-                    if not product_id in products_dict: 
-                        products_dict[product_id] = [str(product_id), product_stock]
-                    product_count += 1
+        #             if not product_id in products_dict: 
+        #                 products_dict[product_id] = [str(product_id), product_stock]
+        #             product_count += 1
         
-        i = -1                                              
-        for val in fields:
-            i += 1
-            worksheet.write(0, i, val)
+        # i = -1                                              
+        # for val in fields:
+        #     i += 1
+        #     worksheet.write(0, i, val)
 
-        i = 0
-        for row in products_dict:
-            i += 1
-            j = -1
-            for val in products_dict[row]:
-                j += 1
-                worksheet.write(i, j, val)
-        workbook.close()
+        # i = 0
+        # for row in products_dict:
+        #     i += 1
+        #     j = -1
+        #     for val in products_dict[row]:
+        #         j += 1
+        #         worksheet.write(i, j, val)
+        # workbook.close()
         
-        print("#" * 50)
-        print("count = " + str(product_count))
+        # print("#" * 50)
+        # print("count = " + str(product_count))
 
-        self.status_publishing("scraping is ended")
+        # self.status_publishing("scraping is ended")
         
         
     def status_publishing(self,text) :

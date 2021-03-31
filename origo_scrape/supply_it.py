@@ -92,8 +92,8 @@ class Supply_it_Thread(Thread):
     # Sign In Button
         while True:
             try:
-                password_field = driver.find_element_by_xpath("//div[@class='panel header']//button[@type='submit' and ./span='Sign In']")
-                password_field.click()
+                sign_in = driver.find_element_by_xpath("//div[@class='panel header']//button[@type='submit' and ./span='Sign In']")
+                sign_in.click()
                 self.status_publishing("Sign In Button is clicked")
                 break
             except TimeoutException:
@@ -119,6 +119,8 @@ class Supply_it_Thread(Thread):
         chrome_options.add_argument("--headless")
         chrome_options.add_argument("window-size=1280,800")
         chrome_options.add_argument('--log-level=0')
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        chrome_options.add_experimental_option('useAutomationExtension', False)
         path = join(dirname(__file__), 'webdriver', 'chromedriver.exe') # Windows
         if platform.system() == "Linux":
             path = join(dirname(__file__), 'webdriver', 'chromedriver') # Linux
@@ -129,6 +131,9 @@ class Supply_it_Thread(Thread):
         my_logging(self.log, "start chrome")
         #Remove navigator.webdriver Flag using JavaScript
         driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+        
+
+
         # driver.set_window_size(1200,900)
         try:
             my_logging(self.log, "try")
@@ -210,6 +215,8 @@ class Supply_it_Thread(Thread):
             print("category = " + category)
 
             # Get Products
+            driver.execute_cdp_cmd('Emulation.setScriptExecutionDisabled', {'value': True})
+
             while True:
                 try:
                     products = driver.find_elements_by_xpath("//div[@class='products wrapper grid columns6  products-grid']//li")
@@ -229,42 +236,54 @@ class Supply_it_Thread(Thread):
                 for product in products:
                     product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
                     product_id = product_part_1.get_attribute("data-product-id")
-                    product_link_elem = product.find_element_by_xpath("//div[@class='product photo product-item-photo']/a")
+                    product_link_elem = product.find_element_by_xpath(".//div[@class='product photo product-item-photo']/a")
                     product_link_list[product_id] = product_link_elem.get_attribute("href")
 
                 # Get product details
+                print("#" * 50)
+                print(product_link_list)
+                print("#" * 50)
                 for product_id in product_link_list:
                     self.status_publishing(product_link_list[product_id])
                     driver.get(product_link_list[product_id])
-                    time.sleep(1)
+                    # time.sleep(1)                   
                     product_title = driver.find_element_by_xpath("//h1[@class='page-title']/span").text
                     product_sku = driver.find_element_by_xpath("//div[@itemprop='sku']").text
                     product_stock = "Out"
+
                     try:
                         product_stock_avail = driver.find_element_by_xpath("//div[@title='Availability' and @class='stock available']")
                         product_stock = "In"
                     except:
                         pass
-                    
+
                     product_price_list = driver.find_element_by_xpath("//div[@class='product-info-price']//span[@class='price-container price-final_price tax weee rewards_earn']//span[@class='price']").text
                     product_price_nett = ""
+
                     try:
                         product_price_nett_elem = driver.find_element_by_xpath("//span[@class='price-container price-tier_price tax weee rewards_earn']//span[@class='price']")
                         product_price_nett = product_price_nett_elem.text
                     except:
                         pass
                     
-                    product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
-                    product_img = driver.find_element_by_xpath("(//div[contains(@class,'fotorama__stage__shaft')]//img)[1]").get_attribute("src")
+                    product_description = ""
+                    try:
+                        product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
+                    except:
+                        pass
+                    product_img = driver.find_element_by_xpath("(//div[contains(@data-gallery-role,'gallery')]//img)[1]").get_attribute("src")
 
                     try:
                         if product_id in products_dict: 
                             print("duplicate")
-                            products_dict[product_id][1] += " ; " + category
+                            products_dict[product_id][2] += " ; " + category
                         else:
                             products_dict[product_id] = [str(product_id), product_sku, category, product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
                     except:
                         pass
+
+                    product_count += 1
+
             else:
 
             # Stock Scrape
@@ -309,3 +328,4 @@ class Supply_it_Thread(Thread):
         scrape_status = text
         self.status = text
         print(text)
+        my_logging(self.log, text)
