@@ -163,6 +163,7 @@ class FF_Thread(Thread):
         global root_path
 
         products_dict = {}
+        global_head_list = []
         product_count = 0
         fields = ['id', 'sku', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
         if stock_scrape == 1: fields = ['id', 'stock']
@@ -171,7 +172,7 @@ class FF_Thread(Thread):
         timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
         xlsfile_name = 'products-' + timestamp + '.xlsx'
         if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
-        xlsfile_name = join(root_path, "xls", "supply-it", xlsfile_name)
+        xlsfile_name = join(root_path, "xls", "furlongflooring", xlsfile_name)
 
         workbook = xlsxwriter.Workbook(xlsfile_name)
         worksheet = workbook.add_worksheet()
@@ -228,6 +229,7 @@ class FF_Thread(Thread):
 
         # 
         for link in sub_category_link_list:
+            self.status_publishing("link = " + link)
             driver.get(link)
             time.sleep(1)
             
@@ -240,19 +242,28 @@ class FF_Thread(Thread):
             
             head_list = []
             for head in head_list_elem:
-                if head.text == "Pattern Id": 
-                    head_list.append("Pattern")
-                else:
-                    head_list.append(head.text)
+                head_text = head.text
+                if head_text == "Pattern Id": 
+                    head_text = "Pattern"
+                head_list.append(head_text)
+                if not head_text in global_head_list and head_text != " " : global_head_list.append(head_text)
 
             product_list = driver.find_elements_by_xpath("html/body/div/table[2]/tbody/tr/td/table/tbody/tr[contains(@class, 'stocktd')]")
-            
+            print("::  start  ::")
             for product in product_list:
                 product_detail = {}
                 for field, item in zip(head_list, product.find_elements_by_xpath("./td")):
-                    product_detail[field] = item.text
+                    if field == " ":
+                        continue
+                    elif field == "Stock":
+                        product_stock = item.find_element_by_xpath(".//td").text
+                        if product_stock.find("(") > -1:
+                            product_stock = product_stock[:product_stock.find("(")].strip()
+                        product_detail[field] = product_stock
+                    else:
+                        product_detail[field] = item.text
                 
-                print(product_detail)
+                # print(product_detail)
                 
                 if product_detail["Item"] in products_dict: 
                     print("duplicate")
@@ -260,7 +271,28 @@ class FF_Thread(Thread):
                 else:
                     products_dict[product_detail["Item"]] = product_detail
 
+                product_count += 1
+            print(":: end  ::")
 
+        i = -1  
+        field_to_num_dict = {}                                            
+        for head in global_head_list:            
+            i += 1
+            field_to_num_dict[head] = i
+            worksheet.write(0, i, head)
+
+        i = 0
+        for row in products_dict:
+            i += 1
+            j = -1
+            for field in products_dict[row]:
+                worksheet.write(i, field_to_num_dict[field], products_dict[row][field])
+        workbook.close()
+
+        print("#" * 50)
+        print("count = " + str(product_count))
+
+        self.status_publishing("scraping is ended")
 
 
 
