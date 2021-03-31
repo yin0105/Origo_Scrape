@@ -25,11 +25,12 @@ cur_site = ""
 # t_origo = ""
 # t_supply_it = ""
 # t_ff = ""
-
+sites = [{"url": "https://origo-online.origo.ie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply_it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
 def index(request):
+    global sites
     # return render(request, "index.html")
     context = {}
-    context['sites'] = [{"url": "https://origo-online.origo.ie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply-it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
+    context['sites'] = sites
     html_template = loader.get_template( 'index.html' )
     return HttpResponse(html_template.render(context, request))
 
@@ -43,7 +44,7 @@ def start_scrape(request):
     if cur_site == "origo":
         t_origo = Origo_Thread(scrape_type)
         t_origo.start()
-    elif cur_site == "supply-it":
+    elif cur_site == "supply_it":
         t_supply_it = Supply_it_Thread(scrape_type)
         t_supply_it.start()
     elif cur_site == "furlongflooring":
@@ -60,12 +61,12 @@ def get_scraping_status(request):
 
     if cur_site == "origo" :
         res = t_origo.status
-    elif cur_site == "supply-it" :
+    elif cur_site == "supply_it" :
         res = t_supply_it.status
     elif cur_site == "furlongflooring" :
         res = t_ff.status
         # res = origo_scrape_status
-    # if cur_site == "supply-it" :
+    # if cur_site == "supply_it" :
     #     res = supply_it_scrape_status
     # if cur_site == "furlongflooring" :
     #     res = furlongflooring_scrape_status
@@ -76,22 +77,28 @@ def get_scraping_status(request):
 
 def get_xls_list(request):
     global root_path
-    products_arr = []
-    stock_arr = []
+    
     res = ""
-    for file in glob.glob(join(root_path, "xls", "products-2*.xlsx")):
-        products_arr.append(file[file.rfind(os.path.sep) + 10 : -5])
-    for file in glob.glob(join(root_path, "xls", "stock-2*.xlsx")):
-        stock_arr.append(file[file.rfind(os.path.sep) + 7 : -5])
-    products_arr.sort(reverse=True)
-    stock_arr.sort(reverse=True)
-    res = '{"full": "' + '_'.join(products_arr) + '", "stock": "' + '_'.join(stock_arr) + '"}'
+    for site in sites:
+        products_arr = []
+        stock_arr = []
+        
+        for file in glob.glob(join(root_path, "xls", site["short"], "products-2*.xlsx")):
+            products_arr.append(file[file.rfind(os.path.sep) + 10 : -5])
+        for file in glob.glob(join(root_path, "xls", site["short"], "stock-2*.xlsx")):
+            stock_arr.append(file[file.rfind(os.path.sep) + 7 : -5])
+        products_arr.sort(reverse=True)
+        stock_arr.sort(reverse=True)
+        if res != "": res += ", "
+        res += '"' + site["short"] + '": {"full": "' + '_'.join(products_arr) + '", "stock": "' + '_'.join(stock_arr) + '"}'
+    res = '{' + res + '}'
     
     return HttpResponse(res)
 
 
 def download(request):
 # Create file_name & file_path
+    site = request.GET["site"]
     stock = request.GET["stock"]
     diff = request.GET["diff"]
     recent = request.GET["recent"]
@@ -104,17 +111,17 @@ def download(request):
     if diff == "1" : file_name += "diff-"
     file_name += recent
     if diff == "1" : file_name += "_" + compare
-    zipfile_name = file_name + ".zip"
+    zipfile_name = site + "-" + file_name + ".zip"
     file_name += ".xlsx"
     print("file_name = " + file_name)
 
     file_path = []
     if diff =="1":
-        file_path.append(os.path.join(root_path, "xls", file_prefix + "add-" + recent + "_" + compare + ".xlsx"))
-        file_path.append(os.path.join(root_path, "xls", file_prefix + "remove-" + recent + "_" + compare + ".xlsx"))
+        file_path.append(os.path.join(root_path, "xls", site, file_prefix + "add-" + recent + "_" + compare + ".xlsx"))
+        file_path.append(os.path.join(root_path, "xls", site, file_prefix + "remove-" + recent + "_" + compare + ".xlsx"))
         zipfile_name = file_prefix + "compare-" + recent + "_" + compare + ".zip"
     else:
-        file_path.append(os.path.join(root_path, "xls", file_name))
+        file_path.append(os.path.join(root_path, "xls", site, file_name))
 
     response = HttpResponse(content_type='application/zip')
     zf = zipfile.ZipFile(response, 'w')

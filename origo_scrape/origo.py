@@ -174,7 +174,7 @@ class Origo_Thread(Thread):
     
         xlsfile_name = 'products-' + timestamp + '.xlsx'
         if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
-        xlsfile_name = join(root_path, "xls", xlsfile_name)
+        xlsfile_name = join(root_path, "xls", "origo", xlsfile_name)
 
         workbook = xlsxwriter.Workbook(xlsfile_name)
         worksheet = workbook.add_worksheet()

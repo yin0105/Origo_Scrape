@@ -193,6 +193,7 @@
             var full_xls_list = [];
             var stock_xls_list = [];
             var get_scraping_status_interval;
+            var xls_file_list;
 
             $(".btn_start").on("click", function(){
                 var scrape_type = "";
@@ -260,14 +261,9 @@
             
                     success: function (result) { 
                         console.log(result);
-                        const obj = JSON.parse(result);
-                        full_xls_list = obj.full.split("_");
-                        stock_xls_list = obj.stock.split("_");
+                        xls_file_list = JSON.parse(result);                        
 
-                        display_xls_list()
-
-                        console.log(obj.full);
-                        console.log(obj.stock);
+                        display_xls_list()                        
                     },
                     error: function (error) {
                         console.log(error);
@@ -276,7 +272,25 @@
             }
 
             function display_xls_list() {
-                console.log($("#download_type").prop("selectedIndex") );
+                switch($("#site").prop("selectedIndex")) {
+                    case 0:
+                        full_xls_list = xls_file_list.origo.full.split("_");
+                        stock_xls_list = xls_file_list.origo.stock.split("_");
+                        break;
+                    case 1:
+                        full_xls_list = xls_file_list.supply_it.full.split("_");
+                        stock_xls_list = xls_file_list.supply_it.stock.split("_");
+                        break;
+                    case 2:
+                        full_xls_list = xls_file_list.furlongflooring.full.split("_");
+                        stock_xls_list = xls_file_list.origo.stock.split("_");
+                        break;
+                }
+
+                // $("#compare_date").html("");
+                $("#recent_date").val("");
+                $("#compare_date").html("");
+
                 if ($("#download_type").prop("selectedIndex") == 0 || $("#download_type").prop("selectedIndex") == 2 ) {
                     if (full_xls_list.length > 0) {
                         $("#recent_date").val(full_xls_list[0]);
@@ -287,10 +301,7 @@
                             }
                             $("#compare_date").html(ss);
                         }
-                    } else {
-                        $("#recent_date").val("");
-                        $("#compare_date").html("");
-                    }
+                    } 
                 } else {
                     if (stock_xls_list.length > 0) {
                         $("#recent_date").val(stock_xls_list[0]);
@@ -301,15 +312,17 @@
                             }
                             $("#compare_date").html(ss);
                         }
-                    } else {
-                        $("#recent_date").val("");
-                        $("#compare_date").html("");
                     }
                 }
                 // $('#compare_date').selectpicker('refresh');
             }
 
             $("#download_type").on("change", function(){
+                console.log("onchange");
+                display_xls_list();
+            });
+
+            $("#site").on("change", function(){
                 console.log("onchange");
                 display_xls_list();
             });
@@ -346,7 +359,7 @@
                         break;
                 }
                 
-                window.open("/download?stock=" + stock + "&diff=" + diff + "&recent=" + $("#recent_date").val() + "&compare=" + $("#compare_date").val(), "_blank");
+                window.open("/download?site=" + $("#site").val() + "&stock=" + stock + "&diff=" + diff + "&recent=" + $("#recent_date").val() + "&compare=" + $("#compare_date").val(), "_blank");
             });
 
             get_xls_list();

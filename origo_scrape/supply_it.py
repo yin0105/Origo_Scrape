@@ -122,6 +122,7 @@ class Supply_it_Thread(Thread):
         chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
         path = join(dirname(__file__), 'webdriver', 'chromedriver.exe') # Windows
+        print("platform.system() = " + platform.system())
         if platform.system() == "Linux":
             path = join(dirname(__file__), 'webdriver', 'chromedriver') # Linux
 
@@ -168,6 +169,7 @@ class Supply_it_Thread(Thread):
         global root_path
 
         products_dict = {}
+        categories_dict = {}
         product_count = 0
         fields = ['id', 'sku', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
         if stock_scrape == 1: fields = ['id', 'stock']
@@ -200,7 +202,7 @@ class Supply_it_Thread(Thread):
         for link in category_link_list:
             self.status_publishing(link)
             driver.get(link + "?product_list_limit=all")
-            time.sleep(1)
+            # time.sleep(1)
             
             # Get Category
             while True:
@@ -210,12 +212,12 @@ class Supply_it_Thread(Thread):
                     break
                 except TimeoutException:
                     self.status_publishing("Category has not found")
-                    time.sleep(1)
+                    # time.sleep(1)
             category = " > ".join([p.text for p in category_parts])
             print("category = " + category)
 
             # Get Products
-            driver.execute_cdp_cmd('Emulation.setScriptExecutionDisabled', {'value': True})
+            # driver.execute_cdp_cmd('Emulation.setScriptExecutionDisabled', {'value': True})
 
             while True:
                 try:
@@ -224,7 +226,7 @@ class Supply_it_Thread(Thread):
                     break
                 except TimeoutException:
                     self.status_publishing("Products list has not found")
-                    time.sleep(1)
+                    # time.sleep(1)
 
             # Get Product details
             if stock_scrape == 0:
@@ -236,17 +238,32 @@ class Supply_it_Thread(Thread):
                 for product in products:
                     product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
                     product_id = product_part_1.get_attribute("data-product-id")
+
+                    if product_id in categories_dict:
+                        categories_dict[product_id] += " ; " + category
+                        continue
+                    else:
+                        categories_dict[product_id] = category
                     product_link_elem = product.find_element_by_xpath(".//div[@class='product photo product-item-photo']/a")
                     product_link_list[product_id] = product_link_elem.get_attribute("href")
 
-                # Get product details
-                print("#" * 50)
-                print(product_link_list)
-                print("#" * 50)
+                # # Get product details
+                # print("#" * 50)
+                # print(product_link_list)
+                # print("#" * 50)
+
                 for product_id in product_link_list:
                     self.status_publishing(product_link_list[product_id])
                     driver.get(product_link_list[product_id])
                     # time.sleep(1)                   
+                    product_img = ""
+                    while True:
+                        try:
+                            product_img = driver.find_element_by_xpath("(//div[contains(@data-gallery-role,'gallery')]//img)[1]").get_attribute("src")
+                            break
+                        except:
+                            pass
+                        
                     product_title = driver.find_element_by_xpath("//h1[@class='page-title']/span").text
                     product_sku = driver.find_element_by_xpath("//div[@itemprop='sku']").text
                     product_stock = "Out"
@@ -271,14 +288,15 @@ class Supply_it_Thread(Thread):
                         product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
                     except:
                         pass
-                    product_img = driver.find_element_by_xpath("(//div[contains(@data-gallery-role,'gallery')]//img)[1]").get_attribute("src")
+
+                    
 
                     try:
                         if product_id in products_dict: 
                             print("duplicate")
-                            products_dict[product_id][2] += " ; " + category
+                            products_dict[product_id][2] += " ; " + categories_dict[product_id]
                         else:
-                            products_dict[product_id] = [str(product_id), product_sku, category, product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
+                            products_dict[product_id] = [str(product_id), product_sku, categories_dict[product_id], product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
                     except:
                         pass
 
