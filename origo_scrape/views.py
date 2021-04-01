@@ -119,7 +119,7 @@ def download(request):
     if diff =="1":
         file_path.append(os.path.join(root_path, "xls", site, file_prefix + "add-" + recent + "_" + compare + ".xlsx"))
         file_path.append(os.path.join(root_path, "xls", site, file_prefix + "remove-" + recent + "_" + compare + ".xlsx"))
-        zipfile_name = file_prefix + "compare-" + recent + "_" + compare + ".zip"
+        zipfile_name = site + "-" + file_prefix + "compare-" + recent + "_" + compare + ".zip"
     else:
         file_path.append(os.path.join(root_path, "xls", site, file_name))
 
@@ -130,7 +130,7 @@ def download(request):
         # Generate if there is no different .xlsx file
         print("file = " + file)
         if diff == "1" and not path.exists(file) :
-            compare_xlsx(stock, recent, compare)
+            compare_xlsx(site, stock, recent, compare)
         with open(file, 'rb') as fh:
             zf.writestr(file[file.rfind(os.path.sep) + 1:], fh.read())
 
@@ -139,40 +139,31 @@ def download(request):
     return response
 
 
-def compare_xlsx(stock, recent, compare) :
+def compare_xlsx(site, stock, recent, compare) :
     print("*************  compare_xlsx")
     global root_path
 
-    fields = ['id', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
+    # fields = ['id', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
+    fields = []
     file_prefix = "products-"
     if stock == "1": 
-        fields = ['id', 'stock']
+        # fields = ['id', 'stock']
         file_prefix = "stock-"
-    
-# Find a .xlsx file to compare
-    # xlsx_list = []
-    # for file in glob.glob(join(root_path, "xls", file_prefix + "-*.xlsx")):
-    #     xlsx_list.append(file)
-
-    # xlsx_list.sort()
-    # print(xlsx_list[-1][9:-5])
-    # if len(xlsx_list) < 2:
-    #     return "There are no .xlsx files to compare."
-    # print(xlsx_list[-2][9:-5])
-
-    # compare_file_name = "compare-" + xlsx_list[-1][9:-5] + "_" + xlsx_list[-2][9:-5] + ".xlsx"
+ 
     add_file_name = file_prefix + "add-" + recent + "_" + compare + ".xlsx"
     remove_file_name = file_prefix + "remove-" + recent + "_" + compare + ".xlsx"
     older_products = {}
     newer_products = {}
 
-    wb_obj = openpyxl.load_workbook(join(root_path, "xls", file_prefix + compare + ".xlsx"))
+    wb_obj = openpyxl.load_workbook(join(root_path, "xls", site, file_prefix + compare + ".xlsx"))
     sheet = wb_obj.active
 
     older_products = {}
 
     for i, row in enumerate(sheet.iter_rows(values_only=True)):
-        if i > 0:
+        if i == 0:
+            fields = row
+        else:
             try:
                 if row[0] in older_products: continue
             except:
@@ -180,7 +171,7 @@ def compare_xlsx(stock, recent, compare) :
             older_products[row[0]] = row
     print(str(len(older_products)))
 
-    wb_obj = openpyxl.load_workbook(join(root_path, "xls", file_prefix + recent + ".xlsx"))
+    wb_obj = openpyxl.load_workbook(join(root_path, "xls", site, file_prefix + recent + ".xlsx"))
     sheet = wb_obj.active
 
     newer_products = {}
@@ -204,7 +195,7 @@ def compare_xlsx(stock, recent, compare) :
         except:
             pass
 
-    workbook = xlsxwriter.Workbook(join(root_path, "xls", add_file_name))
+    workbook = xlsxwriter.Workbook(join(root_path, "xls", site, add_file_name))
     worksheet = workbook.add_worksheet("Add")
 
     i = -1                                              
@@ -221,7 +212,7 @@ def compare_xlsx(stock, recent, compare) :
             worksheet.write(i, j, val)
     workbook.close()
 
-    workbook = xlsxwriter.Workbook(join(root_path, "xls", remove_file_name))
+    workbook = xlsxwriter.Workbook(join(root_path, "xls", site, remove_file_name))
     worksheet = workbook.add_worksheet("Remove")
 
     i = -1                                              

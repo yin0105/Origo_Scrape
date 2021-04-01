@@ -178,7 +178,7 @@ class Supply_it_Thread(Thread):
         timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
         xlsfile_name = 'products-' + timestamp + '.xlsx'
         if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
-        xlsfile_name = join(root_path, "xls", "supply-it", xlsfile_name)
+        xlsfile_name = join(root_path, "xls", "supply_it", xlsfile_name)
 
         workbook = xlsxwriter.Workbook(xlsfile_name)
         worksheet = workbook.add_worksheet()
