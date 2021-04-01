@@ -249,14 +249,15 @@ class FF_Thread(Thread):
                 if not head_text in global_head_list and head_text != " " : global_head_list.append(head_text)
 
             product_list = driver.find_elements_by_xpath("html/body/div/table[2]/tbody/tr/td/table/tbody/tr[contains(@class, 'stocktd')]")
-            print("::  start  ::")
             for product in product_list:
                 product_detail = {}
                 for field, item in zip(head_list, product.find_elements_by_xpath("./td")):
                     if field == " ":
                         continue
                     elif field == "Stock":
-                        product_stock = item.find_element_by_xpath(".//td").text
+                        while True:
+                            product_stock = item.find_element_by_xpath(".//td").text
+                            if product_stock != "Loading..." : break
                         if product_stock.find("(") > -1:
                             product_stock = product_stock[:product_stock.find("(")].strip()
                         product_detail[field] = product_stock
@@ -272,7 +273,6 @@ class FF_Thread(Thread):
                     products_dict[product_detail["Item"]] = product_detail
 
                 product_count += 1
-            print(":: end  ::")
 
         i = -1  
         field_to_num_dict = {}                                            
