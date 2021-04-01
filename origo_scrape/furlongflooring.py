@@ -279,7 +279,10 @@ class FF_Thread(Thread):
         for head in global_head_list:            
             i += 1
             field_to_num_dict[head] = i
-            worksheet.write(0, i, head)
+            if head == "Item":
+                worksheet.write(0, i, "SKU")
+            else:
+                worksheet.write(0, i, head)
 
         i = 0
         for row in products_dict:
@@ -293,113 +296,6 @@ class FF_Thread(Thread):
         print("count = " + str(product_count))
 
         self.status_publishing("scraping is ended")
-
-
-
-        #     # Get Category
-        #     while True:
-        #         try:
-        #             category_parts = driver.find_elements_by_xpath("//li[contains(@class, 'item category')]")
-        #             # self.status_publishing("Category had got.")
-        #             break
-        #         except TimeoutException:
-        #             self.status_publishing("Category has not found")
-        #             time.sleep(1)
-        #     category = " > ".join([p.text for p in category_parts])
-        #     print("category = " + category)
-
-        #     # Get Products
-        #     while True:
-        #         try:
-        #             products = driver.find_elements_by_xpath("//div[@class='products wrapper grid columns6  products-grid']//li")
-        #             # self.status_publishing("Products list had got.")
-        #             break
-        #         except TimeoutException:
-        #             self.status_publishing("Products list has not found")
-        #             time.sleep(1)
-
-        #     # Get Product details
-        #     if stock_scrape == 0:
-                
-        #     # Full Scrape
-        #         product_link_list = {}
-                
-        #         # Get product_id and product_details file name
-        #         for product in products:
-        #             product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
-        #             product_id = product_part_1.get_attribute("data-product-id")
-        #             product_link_elem = product.find_element_by_xpath("//div[@class='product photo product-item-photo']/a")
-        #             product_link_list[product_id] = product_link_elem.get_attribute("href")
-
-        #         # Get product details
-        #         for product_id in product_link_list:
-        #             self.status_publishing(product_link_list[product_id])
-        #             driver.get(product_link_list[product_id])
-        #             time.sleep(1)
-        #             product_title = driver.find_element_by_xpath("//h1[@class='page-title']/span").text
-        #             product_sku = driver.find_element_by_xpath("//div[@itemprop='sku']").text
-        #             product_stock = "Out"
-        #             try:
-        #                 product_stock_avail = driver.find_element_by_xpath("//div[@title='Availability' and @class='stock available']")
-        #                 product_stock = "In"
-        #             except:
-        #                 pass
-                    
-        #             product_price_list = driver.find_element_by_xpath("//div[@class='product-info-price']//span[@class='price-container price-final_price tax weee rewards_earn']//span[@class='price']").text
-        #             product_price_nett = ""
-        #             try:
-        #                 product_price_nett_elem = driver.find_element_by_xpath("//span[@class='price-container price-tier_price tax weee rewards_earn']//span[@class='price']")
-        #                 product_price_nett = product_price_nett_elem.text
-        #             except:
-        #                 pass
-                    
-        #             product_description = driver.find_element_by_xpath("//div[@itemprop='description']").text
-        #             product_img = driver.find_element_by_xpath("(//div[contains(@class,'fotorama__stage__shaft')]//img)[1]").get_attribute("src")
-
-        #             try:
-        #                 if product_id in products_dict: 
-        #                     print("duplicate")
-        #                     products_dict[product_id][1] += " ; " + category
-        #                 else:
-        #                     products_dict[product_id] = [str(product_id), product_sku, category, product_title, product_stock, product_price_list, product_price_nett, product_description, product_link_list[product_id], product_img]
-        #             except:
-        #                 pass
-        #     else:
-
-        #     # Stock Scrape
-        #         for product in products:
-        #             product_part_1 = product.find_element_by_xpath(".//div[@class='price-box price-final_price']")
-        #             product_id = product_part_1.get_attribute("data-product-id")
-                    
-        #             product_stock = "In"
-        #             try:
-        #                 product_stock_unavail = driver.find_element_by_xpath("//div[@class='stock unavailable']")
-        #                 product_stock = "Out"
-        #             except:
-        #                 pass
-
-        #             if not product_id in products_dict: 
-        #                 products_dict[product_id] = [str(product_id), product_stock]
-        #             product_count += 1
-        
-        # i = -1                                              
-        # for val in fields:
-        #     i += 1
-        #     worksheet.write(0, i, val)
-
-        # i = 0
-        # for row in products_dict:
-        #     i += 1
-        #     j = -1
-        #     for val in products_dict[row]:
-        #         j += 1
-        #         worksheet.write(i, j, val)
-        # workbook.close()
-        
-        # print("#" * 50)
-        # print("count = " + str(product_count))
-
-        # self.status_publishing("scraping is ended")
         
         
     def status_publishing(self,text) :
