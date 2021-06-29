@@ -10,7 +10,8 @@ env/
 tmp/
 
 db.sqlite3
-source/.env
+.env
 
 AWS - deploy/
 xls/
+
