@@ -16,7 +16,7 @@ from os import path
 from django.contrib.auth.decorators import login_required
 
 from bs4 import BeautifulSoup
-import requests
+import requests, math
 from datetime import datetime
 
 
@@ -32,11 +32,12 @@ cur_site = ""
 t_origo = None
 t_supply_it = None
 t_ff = None
-t_rds = None
+t_rds = []
 # sites = [{"url": "https://origo-online.origo.ie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply_it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
 sites = [{"url": "https://www.reydonsports.com/", "short": "reydonsports"}]
 # sites = [{"url": "https://www.supply-it.ie/", "short": "supply_it"}]
 scrape_status = None
+THREAD_COUNT = 10
 
 
 @login_required
@@ -51,7 +52,7 @@ def index(request):
 
 @login_required
 def start_scrape(request):
-    global t_origo, t_supply_it, t_ff, t_rds, cur_site
+    global t_origo, t_supply_it, t_ff, t_rds, cur_site, stock_scrape
 
     print("start_scrape")
     cur_site = request.GET["site"]
@@ -69,9 +70,10 @@ def start_scrape(request):
             t_ff = FF_Thread(scrape_type)
             t_ff.start()
     elif cur_site == "reydonsports":
-        if t_rds == None:
-            t_rds = "Started"
-            reydonsports_scrape()
+        if len(t_rds) == 0:
+            stock_scrape = 0
+            if scrape_type == "stock": stock_scrape = 1
+            reydonsports_scrape(stock_scrape)
             # t_rds = RDS_Thread(scrape_type)
             # t_rds.start()
 
@@ -79,7 +81,7 @@ def start_scrape(request):
 
 @login_required
 def get_scraping_status(request):
-    global t_origo, t_supply_it, t_ff, t_rds
+    global t_origo, t_supply_it, t_ff, t_rds, stock_scrape
     res = ""
     cur_site = request.GET["site"]
 
@@ -90,13 +92,47 @@ def get_scraping_status(request):
     elif cur_site == "furlongflooring" :
         res = t_ff.status
     elif cur_site == "reydonsports" :
-        res = scrape_status
-        # res = origo_scrape_status
-    # if cur_site == "supply_it" :
-    #     res = supply_it_scrape_status
-    # if cur_site == "furlongflooring" :
-    #     res = furlongflooring_scrape_status
+        scrape_status = "\n".join([tt.status for tt in t_rds if tt != None])
+        i = 0
+        for t in t_rds:
+            i += 1
+            if t.status != "ended": 
+                break
+
+            if i == len(t_rds):
+                # generate .xlsx file name
+                timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
+                xlsfile_name = 'products-' + timestamp + '.xlsx'
+                if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
+                xlsfile_name = join(root_path, "xls", "reydonsports", xlsfile_name)
+
+                workbook = xlsxwriter.Workbook(xlsfile_name)
+                worksheet = workbook.add_worksheet()
+                
+                row_num = 0
+                for j in range(THREAD_COUNT):
+                    tmp_wb_obj = openpyxl.load_workbook(join(root_path, "xls", "reydonsports", str(j) + "-temp.xlsx"))
+                    sheet = tmp_wb_obj.active
+                    
+                    for k, row in enumerate(sheet.iter_rows(values_only=True)):
+                        if k == 0:
+                            if j == 0:
+                                # Write Header
+                                for val, col in zip(row, range(len(row))):
+                                    worksheet.write(0, col, val)
+                        else:
+                            row_num += 1
+                            for val, col in zip(row, range(len(row))):
+                                worksheet.write(row_num, col, val)
+                    
+                    tmp_wb_obj.close()
+                workbook.close()
+                scrape_status = "scraping is ended"
+                break
         
+        res = scrape_status 
+        if scrape_status == "scraping is ended":
+            t_rds.clear()
     
     return HttpResponse(res)
     
@@ -269,6 +305,7 @@ def status_publishing(text) :
 
 
 def reydonsports_scrape(stock_scrape=0):
+    print("reydonsports_scrape")
     BASE_URL = "https://www.reydonsports.com"        
     category_link_list = []
     products_link_list = []
@@ -277,17 +314,17 @@ def reydonsports_scrape(stock_scrape=0):
     user_password = os.environ.get('RDS_PASSWORD')
 
     fields = ['SKU', 'Name', 'Description', 'Trade Price', 'SRP Price', 'Price', 'Stock', 'URL', 'Image', 'Category', 'Commodity Code', 'Barcode', 'Shipping Dimensions', 'Shipping Weight', 'Country of Origin', 'Colour', 'Length']
-    if stock_scrape == 1: fields = ['sku', 'stock']
+    if stock_scrape == 1: fields = ['SKU', 'Name', 'stock']
 
-    # generate .xlsx file name
-    timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
-    xlsfile_name = 'products-' + timestamp + '.xlsx'
-    if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
-    xlsfile_name = join(root_path, "xls", "reydonsports", xlsfile_name)
-    print(xlsfile_name)
+    # # generate .xlsx file name
+    # timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
+    # xlsfile_name = 'products-' + timestamp + '.xlsx'
+    # if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
+    # xlsfile_name = join(root_path, "xls", "reydonsports", xlsfile_name)
+    # print(xlsfile_name)
 
-    workbook = xlsxwriter.Workbook(xlsfile_name)
-    worksheet = workbook.add_worksheet()
+    # workbook = xlsxwriter.Workbook(xlsfile_name)
+    # worksheet = workbook.add_worksheet()
 
     with requests.Session() as s:
         # Get CSRF_TOKEN
@@ -316,6 +353,9 @@ def reydonsports_scrape(stock_scrape=0):
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
             'cookie': 'frontend_lang=en_GB; session_id=e065a7444d4a835d3a1969bd5ee64520ed8438d7; _ga=GA1.2.248003462.1624860338; _gid=GA1.2.482944600.1624860338'
         }
+
+
+# START --- GET PRODUCT LINK --- 
 
         products_url_txt = open("reydonsports_products_url.txt","w")
         base_page = s.get('https://www.reydonsports.com/shop')
@@ -359,138 +399,27 @@ def reydonsports_scrape(stock_scrape=0):
 
         products_url_txt.close()
 
+# END --- GET PRODUCT LINK ---       
+
+
+
         products_url_txt = open("reydonsports_products_url.txt","r")
-
+        lines = len(products_url_txt.readlines())
+        print("lines = ", lines)
         
+        # i = -1  
+        # for head in fields:
+        #     i += 1            
+        #     worksheet.write(0, i, head)
         
-        i = -1  
-        for head in fields:
-            i += 1            
-            worksheet.write(0, i, head)
-        i = 0
-        for product_link in products_url_txt.readlines():
-        # for product_link in products_link_list:
-            i += 1
-            link = product_link[:-1]
-            status_publishing("Product " + str(i) + " : " + link)                
-            if link[0] == "/": 
-                link = BASE_URL + link
-            page = s.get(link, headers=headers)
-            soup = BeautifulSoup(page.content, 'html.parser')
-            print(soup.find('div', attrs={'class':'c_product_name'}))
-            product_name = soup.find('div', attrs={'class':'c_product_name'}).get_text()
-            print(product_name)
+        start_index = 0        
+        
+        for i in range(THREAD_COUNT):
+            end_index = start_index + math.ceil(lines / THREAD_COUNT)
+            if end_index > lines + 1: end_index = lines + 1
+            th = RDS_Thread(i, start_index, end_index, stock_scrape)
+            print(start_index, end_index)
+            th.start()
+            t_rds.append(th)
 
-            product_desc = soup.find('div', attrs={'class':'o_not_editable prod_des'}).get_text()
-            print("product desc :: ", product_desc)
-
-            product_price_trade = soup.find('h6', attrs={'id':'rey_trade_price'}).get_text().split(":")
-            if len(product_price_trade) > 1: 
-                product_price_trade = product_price_trade[1].strip()
-            else:
-                product_price_trade = product_price_trade[0].strip()
-            print("product trade price :: ", product_price_trade)
-
-            product_price_srp = soup.find('h6', attrs={'id':'rey_srp_price'}).get_text().split(":")
-            print("product SRP price :: ", product_price_srp)
-            if len(product_price_srp) > 1: 
-                product_price_srp = product_price_srp[1].strip()
-            else:
-                product_price_srp = product_price_srp[0].strip()
-
-            product_price = soup.find('h4', attrs={'class':'oe_price_h4 css_editable_mode_hidden'}).b.get_text().replace(u'\xa0', u' ')
-
-            product_stock = soup.find('div', attrs={'class':'availability_messages css_rey_is_not_available'}).div.get_text().strip()
-            product_img = soup.find('img', attrs={'class':'img img-responsive product_detail_img js_variant_img'})['src']
-            print("img = ", product_img)
-
-            product_category = soup.find('p', attrs={'class':'category_label'}).a.get_text()
-            product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
-            if product_sku == "":
-                product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
-            print("sku = #", product_sku , "#")
-            product_sku = product_sku.split(":")
-            print(len(product_sku))
-            if len(product_sku) > 1: 
-                product_sku = product_sku[1].strip()
-            else:
-                product_sku = product_sku[0].strip()
-
-            print("SKU = ", product_sku)
-            
-            try:
-                product_intrastat = soup.find('td', attrs={'id':'product_intrastat'}).get_text().strip()
-            except:
-                product_intrastat = ""
-
-            try:
-                product_barcode = soup.find('td', attrs={'id':'product_barcode'}).get_text().strip()
-            except:
-                product_barcode = ""
-
-            try:                
-                product_dimensions = soup.find('td', attrs={'id':'product_dimensions'}).get_text().strip()
-            except:
-                product_dimensions = ""
-
-            try:
-                product_weight = soup.find('td', attrs={'id':'product_weight'}).get_text().strip()
-            except:
-                product_weight = ""
-
-            try:
-                product_origin = soup.find('td', attrs={'id':'product_origin'}).get_text().strip()
-            except:
-                product_origin = ""
-            
-            try:
-                product_color = soup.find("td", string="Colour").find_next_sibling("td").get_text().strip()
-            except:
-                product_color = ""
-            
-            try:
-                product_length = soup.find("td", string="Length").find_next_sibling("td").get_text().strip()
-            except:
-                product_length = ""
-
-            # if product_name not in products_dict: 
-            #     product = {}
-            #     product["name"] = product_name
-            #     product["url"] = product_link[:-1]
-            #     product["desc"] = product_desc
-            #     product["price_trade"] = product_price_trade
-            #     product["price_srp"] = product_price_srp
-            #     product["price"] = product_price
-            #     product["stock"] = product_stock
-            #     product["img"] = product_img
-            #     product["intrastat"] = product_intrastat
-            #     product["barcode"] = product_barcode
-            #     product["dimensions"] = product_dimensions
-            #     product["weight"] = product_weight
-            #     product["origin"] = product_origin
-            #     product["category"] = product_category
-            #     product["sku"] = product_sku
-            #     product["color"] = product_color
-            #     product["length"] = product_length
-
-            #     print("\n == product == ", product, "\n")
-
-            worksheet.write(i, 0, product_sku)
-            worksheet.write(i, 1, product_name)
-            worksheet.write(i, 2, product_desc)
-            worksheet.write(i, 3, product_price_trade)
-            worksheet.write(i, 4, product_price_srp)
-            worksheet.write(i, 5, product_price)
-            worksheet.write(i, 6, product_stock)
-            worksheet.write(i, 7, product_link[:-1])
-            worksheet.write(i, 8, product_img)
-            worksheet.write(i, 9, product_category)
-            worksheet.write(i, 10, product_intrastat)
-            worksheet.write(i, 11, product_barcode)
-            worksheet.write(i, 12, product_dimensions)
-            worksheet.write(i, 13, product_weight)
-            worksheet.write(i, 14, product_origin)
-            worksheet.write(i, 15, product_color)
-            worksheet.write(i, 16, product_length)
-
-        workbook.close()
+            start_index = end_index
