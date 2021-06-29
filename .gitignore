@@ -12,3 +12,4 @@ tmp/
 db.sqlite3
 .env
 AWS - deploy/
+xls/
