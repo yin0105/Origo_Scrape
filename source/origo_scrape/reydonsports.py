@@ -23,7 +23,7 @@ cur_path = dirname(__file__)
 root_path = cur_path[:cur_path.rfind(os.path.sep)]
 # root_path = root_path[:root_path.rfind(os.path.sep)]
 load_dotenv(join(root_path, '.env'))
-log_file_size = 10
+log_file_size = 20
 formatter = logging.Formatter('%(asctime)s    %(message)s')
 scrape_status = ""
 
@@ -133,15 +133,20 @@ class RDS_Thread(Thread):
                 page = s.get(link, headers=headers)
                 soup = BeautifulSoup(page.content, 'html.parser')
 
+                form = str(soup.find('form', attrs={'class':'js_add_cart_variants'})['data-attribute_value_ids'])
+                form = form[form.find("default_code"):]
+                form = form[form.find(":"):]
+                form = form[form.find("'") + 1 :]
+                product_sku = form[:form.find("'")]
                 
-                product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
-                if product_sku == "":
-                    product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
-                product_sku = product_sku.split(":")
-                if len(product_sku) > 1: 
-                    product_sku = product_sku[1].strip()
-                else:
-                    product_sku = product_sku[0].strip()
+                # product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
+                # if product_sku == "":
+                #     product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
+                # product_sku = product_sku.split(":")
+                # if len(product_sku) > 1: 
+                #     product_sku = product_sku[1].strip()
+                # else:
+                #     product_sku = product_sku[0].strip()
 
                 product_name = soup.find('div', attrs={'class':'c_product_name'}).get_text()
                 product_stock = soup.find('div', attrs={'class':'availability_messages css_rey_is_not_available'}).div.get_text().strip()
@@ -204,28 +209,6 @@ class RDS_Thread(Thread):
                         product_length = soup.find("td", string="Length").find_next_sibling("td").get_text().strip()
                     except:
                         product_length = ""
-
-                # if product_name not in products_dict: 
-                #     product = {}
-                #     product["name"] = product_name
-                #     product["url"] = product_link[:-1]
-                #     product["desc"] = product_desc
-                #     product["price_trade"] = product_price_trade
-                #     product["price_srp"] = product_price_srp
-                #     product["price"] = product_price
-                #     product["stock"] = product_stock
-                #     product["img"] = product_img
-                #     product["intrastat"] = product_intrastat
-                #     product["barcode"] = product_barcode
-                #     product["dimensions"] = product_dimensions
-                #     product["weight"] = product_weight
-                #     product["origin"] = product_origin
-                #     product["category"] = product_category
-                #     product["sku"] = product_sku
-                #     product["color"] = product_color
-                #     product["length"] = product_length
-
-                #     print("\n == product == ", product, "\n")
 
                 if stock_scrape == 0:
                     worksheet.write(i, 0, product_sku)
