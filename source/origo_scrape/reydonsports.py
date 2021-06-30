@@ -52,8 +52,8 @@ class RDS_Thread(Thread):
         self.thread_index = thread_index
         self.log = logging.getLogger("a")  # root logger
         self.status = ""
-        
-         
+
+
     def run(self):
         now = datetime.now()
         mail_address = os.environ.get('RDS_LOGIN_ID')
@@ -69,7 +69,6 @@ class RDS_Thread(Thread):
 
 
     def main_loop(self, user_email, user_password, stock_scrape=0):
-        print("\n  == stock scrape = ", stock_scrape)
         BASE_URL = "https://www.reydonsports.com"        
         category_link_list = []
         products_link_list = []
@@ -83,10 +82,7 @@ class RDS_Thread(Thread):
         xlsfile_name = str(self.thread_index) + '-temp.xlsx'
         # if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '-' + str(self.thread_index) + '-temp.xlsx'
         xlsfile_name = join(root_path, "xls", "reydonsports", xlsfile_name)
-        print(xlsfile_name)
-
-        workbook = xlsxwriter.Workbook(xlsfile_name)
-        worksheet = workbook.add_worksheet()
+        print(xlsfile_name)        
 
         with requests.Session() as s:
             # Get CSRF_TOKEN
@@ -96,7 +92,6 @@ class RDS_Thread(Thread):
             script_snippet = script_snippet[script_snippet.find('csrf_token'):]
             script_snippet = script_snippet[script_snippet.find('"') + 1:]
             csrf_token = script_snippet[:script_snippet.find('"')]
-            
             
             p = s.post("https://www.reydonsports.com/web/login", data={
                 "login": user_email,
@@ -118,123 +113,130 @@ class RDS_Thread(Thread):
 
             products_url_txt = open("reydonsports_products_url.txt","r")
             
-            i = -1  
-            for head in fields:
-                i += 1            
-                worksheet.write(0, i, head)
-            i = 0
-            for product_link in products_url_txt.readlines()[self.start_index:self.end_index]:
-            # for product_link in products_link_list:
-                i += 1
-                link = product_link[:-1]
-                self.status_publishing("Product " + str(i) + " : " + link)                
-                if link[0] == "/": 
-                    link = BASE_URL + link
-                page = s.get(link, headers=headers)
-                soup = BeautifulSoup(page.content, 'html.parser')
+            if self.thread_index not in [1, 3, 6, 7]: 
+                workbook = xlsxwriter.Workbook(xlsfile_name)
+                worksheet = workbook.add_worksheet()
+                i = -1  
+                for head in fields:
+                    i += 1            
+                    worksheet.write(0, i, head)
+                workbook.close()
 
-                form = str(soup.find('form', attrs={'class':'js_add_cart_variants'})['data-attribute_value_ids'])
-                form = form[form.find("default_code"):]
-                form = form[form.find(":"):]
-                form = form[form.find("'") + 1 :]
-                product_sku = form[:form.find("'")]
-                
-                # product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
-                # if product_sku == "":
-                #     product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
-                # product_sku = product_sku.split(":")
-                # if len(product_sku) > 1: 
-                #     product_sku = product_sku[1].strip()
-                # else:
-                #     product_sku = product_sku[0].strip()
-
-                product_name = soup.find('div', attrs={'class':'c_product_name'}).get_text()
-                product_stock = soup.find('div', attrs={'class':'availability_messages css_rey_is_not_available'}).div.get_text().strip()
-
-                if stock_scrape == 0:
+                i = 0
+                for product_link in products_url_txt.readlines()[self.start_index:self.end_index]:
+                # for product_link in products_link_list:
+                    workbook = xlsxwriter.Workbook(xlsfile_name)
+                    worksheet = workbook.add_worksheet()
                     
-                    product_desc = soup.find('div', attrs={'class':'o_not_editable prod_des'}).get_text()
+                    i += 1
+                    link = product_link[:-1]
+                    self.status_publishing("Product " + str(i) + " : " + link)                
+                    if link[0] == "/": 
+                        link = BASE_URL + link
+                    page = s.get(link, headers=headers)
+                    soup = BeautifulSoup(page.content, 'html.parser')
 
-                    product_price_trade = soup.find('h6', attrs={'id':'rey_trade_price'}).get_text().split(":")
-                    if len(product_price_trade) > 1: 
-                        product_price_trade = product_price_trade[1].strip()
+                    form = str(soup.find('form', attrs={'class':'js_add_cart_variants'})['data-attribute_value_ids'])
+                    form = form[form.find("default_code"):]
+                    form = form[form.find(":"):]
+                    form = form[form.find("'") + 1 :]
+                    product_sku = form[:form.find("'")]
+                    
+                    # product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
+                    # if product_sku == "":
+                    #     product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
+                    # product_sku = product_sku.split(":")
+                    # if len(product_sku) > 1: 
+                    #     product_sku = product_sku[1].strip()
+                    # else:
+                    #     product_sku = product_sku[0].strip()
+
+                    product_name = soup.find('div', attrs={'class':'c_product_name'}).get_text()
+                    product_stock = soup.find('div', attrs={'class':'availability_messages css_rey_is_not_available'}).div.get_text().strip()
+
+                    if stock_scrape == 0:
+                        
+                        product_desc = soup.find('div', attrs={'class':'o_not_editable prod_des'}).get_text()
+
+                        product_price_trade = soup.find('h6', attrs={'id':'rey_trade_price'}).get_text().split(":")
+                        if len(product_price_trade) > 1: 
+                            product_price_trade = product_price_trade[1].strip()
+                        else:
+                            product_price_trade = product_price_trade[0].strip()
+
+                        product_price_srp = soup.find('h6', attrs={'id':'rey_srp_price'}).get_text().split(":")
+                        if len(product_price_srp) > 1: 
+                            product_price_srp = product_price_srp[1].strip()
+                        else:
+                            product_price_srp = product_price_srp[0].strip()
+
+                        product_price = soup.find('h4', attrs={'class':'oe_price_h4 css_editable_mode_hidden'}).b.get_text().replace(u'\xa0', u' ')
+
+                        
+                        product_img = soup.find('img', attrs={'class':'img img-responsive product_detail_img js_variant_img'})['src']
+                        product_category = soup.find('p', attrs={'class':'category_label'}).a.get_text()
+                        
+                        
+                        
+                        try:
+                            product_intrastat = soup.find('td', attrs={'id':'product_intrastat'}).get_text().strip()
+                        except:
+                            product_intrastat = ""
+
+                        try:
+                            product_barcode = soup.find('td', attrs={'id':'product_barcode'}).get_text().strip()
+                        except:
+                            product_barcode = ""
+
+                        try:                
+                            product_dimensions = soup.find('td', attrs={'id':'product_dimensions'}).get_text().strip()
+                        except:
+                            product_dimensions = ""
+
+                        try:
+                            product_weight = soup.find('td', attrs={'id':'product_weight'}).get_text().strip()
+                        except:
+                            product_weight = ""
+
+                        try:
+                            product_origin = soup.find('td', attrs={'id':'product_origin'}).get_text().strip()
+                        except:
+                            product_origin = ""
+                        
+                        try:
+                            product_color = soup.find("td", string="Colour").find_next_sibling("td").get_text().strip()
+                        except:
+                            product_color = ""
+                        
+                        try:
+                            product_length = soup.find("td", string="Length").find_next_sibling("td").get_text().strip()
+                        except:
+                            product_length = ""
+
+                    if stock_scrape == 0:
+                        worksheet.write(i, 0, product_sku)
+                        worksheet.write(i, 1, product_name)
+                        worksheet.write(i, 2, product_desc)
+                        worksheet.write(i, 3, product_price_trade)
+                        worksheet.write(i, 4, product_price_srp)
+                        worksheet.write(i, 5, product_price)
+                        worksheet.write(i, 6, product_stock)
+                        worksheet.write(i, 7, product_link[:-1])
+                        worksheet.write(i, 8, product_img)
+                        worksheet.write(i, 9, product_category)
+                        worksheet.write(i, 10, product_intrastat)
+                        worksheet.write(i, 11, product_barcode)
+                        worksheet.write(i, 12, product_dimensions)
+                        worksheet.write(i, 13, product_weight)
+                        worksheet.write(i, 14, product_origin)
+                        worksheet.write(i, 15, product_color)
+                        worksheet.write(i, 16, product_length)
                     else:
-                        product_price_trade = product_price_trade[0].strip()
+                        worksheet.write(i, 0, product_sku)
+                        worksheet.write(i, 1, product_name)
+                        worksheet.write(i, 2, product_stock)
 
-                    product_price_srp = soup.find('h6', attrs={'id':'rey_srp_price'}).get_text().split(":")
-                    if len(product_price_srp) > 1: 
-                        product_price_srp = product_price_srp[1].strip()
-                    else:
-                        product_price_srp = product_price_srp[0].strip()
-
-                    product_price = soup.find('h4', attrs={'class':'oe_price_h4 css_editable_mode_hidden'}).b.get_text().replace(u'\xa0', u' ')
-
-                    
-                    product_img = soup.find('img', attrs={'class':'img img-responsive product_detail_img js_variant_img'})['src']
-                    product_category = soup.find('p', attrs={'class':'category_label'}).a.get_text()
-                    
-                    
-                    
-                    try:
-                        product_intrastat = soup.find('td', attrs={'id':'product_intrastat'}).get_text().strip()
-                    except:
-                        product_intrastat = ""
-
-                    try:
-                        product_barcode = soup.find('td', attrs={'id':'product_barcode'}).get_text().strip()
-                    except:
-                        product_barcode = ""
-
-                    try:                
-                        product_dimensions = soup.find('td', attrs={'id':'product_dimensions'}).get_text().strip()
-                    except:
-                        product_dimensions = ""
-
-                    try:
-                        product_weight = soup.find('td', attrs={'id':'product_weight'}).get_text().strip()
-                    except:
-                        product_weight = ""
-
-                    try:
-                        product_origin = soup.find('td', attrs={'id':'product_origin'}).get_text().strip()
-                    except:
-                        product_origin = ""
-                    
-                    try:
-                        product_color = soup.find("td", string="Colour").find_next_sibling("td").get_text().strip()
-                    except:
-                        product_color = ""
-                    
-                    try:
-                        product_length = soup.find("td", string="Length").find_next_sibling("td").get_text().strip()
-                    except:
-                        product_length = ""
-
-                if stock_scrape == 0:
-                    worksheet.write(i, 0, product_sku)
-                    worksheet.write(i, 1, product_name)
-                    worksheet.write(i, 2, product_desc)
-                    worksheet.write(i, 3, product_price_trade)
-                    worksheet.write(i, 4, product_price_srp)
-                    worksheet.write(i, 5, product_price)
-                    worksheet.write(i, 6, product_stock)
-                    worksheet.write(i, 7, product_link[:-1])
-                    worksheet.write(i, 8, product_img)
-                    worksheet.write(i, 9, product_category)
-                    worksheet.write(i, 10, product_intrastat)
-                    worksheet.write(i, 11, product_barcode)
-                    worksheet.write(i, 12, product_dimensions)
-                    worksheet.write(i, 13, product_weight)
-                    worksheet.write(i, 14, product_origin)
-                    worksheet.write(i, 15, product_color)
-                    worksheet.write(i, 16, product_length)
-                else:
-                    worksheet.write(i, 0, product_sku)
-                    worksheet.write(i, 1, product_name)
-                    worksheet.write(i, 2, product_stock)
-
-
-            workbook.close()
+                    workbook.close()
             self.status_publishing("ended")
             time.sleep(10)
             sys.exit()
