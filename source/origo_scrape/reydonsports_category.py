@@ -147,7 +147,8 @@ class RDS_Category_Thread(Thread):
                         page_num += 1
                         if link.find("?") > -1:
                             link_1 = link[:link.find("?")]
-                            page = s.get(link_1 + "/page/" + str(page_num), headers=headers)
+                            link_2 = link[link.find("?"):]
+                            page = s.get(link_1 + "/page/" + str(page_num) + link_2, headers=headers)
                         else:
                             page = s.get(link + "/page/" + str(page_num), headers=headers)
                         soup = BeautifulSoup(page.content, 'html.parser')

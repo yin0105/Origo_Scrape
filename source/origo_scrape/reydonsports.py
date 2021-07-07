@@ -13,7 +13,7 @@ import xlsxwriter
 from threading import Thread
 import logging
 from logging.handlers import RotatingFileHandler
-import platform
+import platform, openpyxl
 
 from bs4 import BeautifulSoup
 import requests, sys
@@ -47,11 +47,18 @@ class RDS_Thread(Thread):
     def __init__(self, thread_index, start_index, end_index, stock_scrape):
         Thread.__init__(self)
         self.stock_scrape = stock_scrape
-        self.start_index = start_index
+        self.start_index = start_index + 519
         self.end_index = end_index
         self.thread_index = thread_index
         self.log = logging.getLogger("a")  # root logger
         self.status = ""
+
+        # if thread_index == 0: self.added = 132
+        # if thread_index == 2: self.added = 116
+        # if thread_index == 4: self.added = 114
+        # if thread_index == 5: self.added = 135
+        # if thread_index == 8: self.added = 130
+        # if thread_index == 9: self.added = 110
 
 
     def run(self):
@@ -75,7 +82,7 @@ class RDS_Thread(Thread):
         products_dict = {}
 
         fields = ['SKU', 'Name', 'Description', 'Trade Price', 'SRP Price', 'Price', 'Stock', 'URL', 'Image', 'Category', 'Commodity Code', 'Barcode', 'Shipping Dimensions', 'Shipping Weight', 'Country of Origin', 'Colour', 'Length']
-        if stock_scrape == 1: fields = ['SKU', 'Name', 'Stock']
+        if stock_scrape == 1: fields = ['SKU', 'Name', 'Stock', 'URL']
 
         # generate .xlsx file name
         timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
@@ -113,26 +120,28 @@ class RDS_Thread(Thread):
 
             products_url_txt = open("reydonsports_products_url.txt","r")
             
-            if self.thread_index not in [1, 3, 6, 7]: 
-                workbook = xlsxwriter.Workbook(xlsfile_name)
-                worksheet = workbook.add_worksheet()
-                i = -1  
-                for head in fields:
-                    i += 1            
-                    worksheet.write(0, i, head)
-                workbook.close()
+            # workbook = xlsxwriter.Workbook(xlsfile_name)
+            # worksheet = workbook.add_worksheet()
+            # i = -1  
+            # for head in fields:
+            #     i += 1            
+            #     worksheet.write(0, i, head)
+            # workbook.close()
 
-                i = 0
-                for product_link in products_url_txt.readlines()[self.start_index:self.end_index]:
-                # for product_link in products_link_list:
-                    workbook = xlsxwriter.Workbook(xlsfile_name)
-                    worksheet = workbook.add_worksheet()
-                    
-                    i += 1
-                    link = product_link[:-1]
-                    self.status_publishing("Product " + str(i) + " : " + link)                
-                    if link[0] == "/": 
-                        link = BASE_URL + link
+            workbook = openpyxl.load_workbook(xlsfile_name)
+            worksheet = workbook.active
+            
+            i = 520
+
+            for product_link in products_url_txt.readlines()[self.start_index:self.end_index]:
+            # for product_link in products_link_list:
+                link = product_link[:-1]
+                self.status_publishing("Product " + str(i) + " : " + link)                
+                i += 1
+                if link[0] == "/": 
+                    link = BASE_URL + link
+                
+                try:
                     page = s.get(link, headers=headers)
                     soup = BeautifulSoup(page.content, 'html.parser')
 
@@ -141,16 +150,6 @@ class RDS_Thread(Thread):
                     form = form[form.find(":"):]
                     form = form[form.find("'") + 1 :]
                     product_sku = form[:form.find("'")]
-                    
-                    # product_sku = soup.find('p', attrs={'class':'sku_label'}).get_text().strip()
-                    # if product_sku == "":
-                    #     product_sku = soup.find('span', attrs={'id':'rey_sku_label'}).get_text().strip()
-                    # product_sku = product_sku.split(":")
-                    # if len(product_sku) > 1: 
-                    #     product_sku = product_sku[1].strip()
-                    # else:
-                    #     product_sku = product_sku[0].strip()
-
                     product_name = soup.find('div', attrs={'class':'c_product_name'}).get_text()
                     product_stock = soup.find('div', attrs={'class':'availability_messages css_rey_is_not_available'}).div.get_text().strip()
 
@@ -214,29 +213,59 @@ class RDS_Thread(Thread):
                             product_length = ""
 
                     if stock_scrape == 0:
-                        worksheet.write(i, 0, product_sku)
-                        worksheet.write(i, 1, product_name)
-                        worksheet.write(i, 2, product_desc)
-                        worksheet.write(i, 3, product_price_trade)
-                        worksheet.write(i, 4, product_price_srp)
-                        worksheet.write(i, 5, product_price)
-                        worksheet.write(i, 6, product_stock)
-                        worksheet.write(i, 7, product_link[:-1])
-                        worksheet.write(i, 8, product_img)
-                        worksheet.write(i, 9, product_category)
-                        worksheet.write(i, 10, product_intrastat)
-                        worksheet.write(i, 11, product_barcode)
-                        worksheet.write(i, 12, product_dimensions)
-                        worksheet.write(i, 13, product_weight)
-                        worksheet.write(i, 14, product_origin)
-                        worksheet.write(i, 15, product_color)
-                        worksheet.write(i, 16, product_length)
+                        worksheet.cell(column=1, row=i).value=product_sku
+                        worksheet.cell(column=2, row=i).value=product_name
+                        worksheet.cell(column=3, row=i).value=product_desc
+                        worksheet.cell(column=4, row=i).value=product_price_trade
+                        worksheet.cell(column=5, row=i).value=product_price_srp
+                        worksheet.cell(column=6, row=i).value=product_price
+                        worksheet.cell(column=7, row=i).value=product_stock
+                        worksheet.cell(column=8, row=i).value=link
+                        worksheet.cell(column=9, row=i).value=product_img
+                        worksheet.cell(column=10, row=i).value=product_category
+                        worksheet.cell(column=11, row=i).value=product_intrastat
+                        worksheet.cell(column=12, row=i).value=product_barcode
+                        worksheet.cell(column=13, row=i).value=product_dimensions
+                        worksheet.cell(column=14, row=i).value=product_weight
+                        worksheet.cell(column=15, row=i).value=product_origin
+                        worksheet.cell(column=16, row=i).value=product_color
+                        worksheet.cell(column=17, row=i).value=product_length
+                        # worksheet.write(i, 0, product_sku)
+                        # worksheet.write(i, 1, product_name)
+                        # worksheet.write(i, 2, product_desc)
+                        # worksheet.write(i, 3, product_price_trade)
+                        # worksheet.write(i, 4, product_price_srp)
+                        # worksheet.write(i, 5, product_price)
+                        # worksheet.write(i, 6, product_stock)
+                        # worksheet.write(i, 7, product_link[:-1])
+                        # worksheet.write(i, 8, product_img)
+                        # worksheet.write(i, 9, product_category)
+                        # worksheet.write(i, 10, product_intrastat)
+                        # worksheet.write(i, 11, product_barcode)
+                        # worksheet.write(i, 12, product_dimensions)
+                        # worksheet.write(i, 13, product_weight)
+                        # worksheet.write(i, 14, product_origin)
+                        # worksheet.write(i, 15, product_color)
+                        # worksheet.write(i, 16, product_length)
                     else:
-                        worksheet.write(i, 0, product_sku)
-                        worksheet.write(i, 1, product_name)
-                        worksheet.write(i, 2, product_stock)
+                        worksheet.cell(column=0, row=i).value=product_sku
+                        worksheet.cell(column=1, row=i).value=product_name
+                        worksheet.cell(column=2, row=i).value=product_stock
+                        worksheet.cell(column=3, row=i).value=link
+                        # worksheet.write(i, 0, product_sku)
+                        # worksheet.write(i, 1, product_name)
+                        # worksheet.write(i, 2, product_stock)
+                    
+                    # workbook.close()
+                except:
+                    if stock_scrape == 0:
+                        worksheet.cell(column=8, row=i).value=link
+                    else:
+                        worksheet.cell(column=3, row=i).value=link
 
-                    workbook.close()
+                workbook.save(xlsfile_name)
+
+
             self.status_publishing("ended")
             time.sleep(10)
             sys.exit()
