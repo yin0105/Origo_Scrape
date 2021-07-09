@@ -53,8 +53,8 @@ class Origo_Category_Thread(Thread):
          
     def run(self):
         now = datetime.now()
-        mail_address = os.environ.get('TOTALIMPORTS_LOGIN_ID')
-        mail_password = os.environ.get('TOTALIMPORTS_PASSWORD')
+        mail_address = os.environ.get('ORIGO_MAIL_ADDRESS')
+        mail_password = os.environ.get('ORIGO_MAIL_PASSWORD')
 
         try:
             self.main_loop(mail_address, mail_password, self.stock_scrape)
@@ -81,25 +81,28 @@ class Origo_Category_Thread(Thread):
             print(p)
             # Get SESSION_ID
             cookie = p.headers["Set-Cookie"]
+            self.status_publishing("headers = " + p.headers)            
+            self.status_publishing("cookie = " + cookie)            
+
             soup = BeautifulSoup(p.content, 'html.parser')
 
             lang_id = cookie[1][cookie[1].find("LanguageId"):]
             lang_id = lang_id[lang_id.find("=") + 1:]
             lang_id = lang_id[:lang_id.find(";")]
-            print("lang id = ", lang_id)
+            self.status_publishing("lang_id = " + lang_id)            
             
             session_id = cookie[2][cookie[2].find("ASP.NET_SessionId"):]
             session_id = session_id[session_id.find("=") + 1:]
             session_id = session_id[:session_id.find(";")]
-            print("session_id = ", session_id)
+            self.status_publishing("session_id = " + session_id)
 
             token = cookie[3][cookie[3].find("__RequestVerificationToken"):]
             token = token[token.find("=") + 1:]
             token = token[:token.find(";")]
-            print("token = ", token)
+            self.status_publishing("token = " + token)
 
             token_2 = soup.find("form", attr={"action": ""}).find("input", attr={"name": "__RequestVerificationToken"})["value"]
-            print("token_2 = ", token_2)
+            self.status_publishing("token_2 = " + token_2)
 
             # Set HEADER
             headers = {
@@ -132,8 +135,7 @@ class Origo_Category_Thread(Thread):
                     cb-enabled=enabled; _ga=GA1.2.1368687610.1625816043; _gid=GA1.2.1963759931.1625816043; _gat_gtag_UA_171557395_1=1; \
                     .ASPXAUTH_SS_s=' + xauth_ss_s + '; .ASPXAUTH_SS=' + xauth_ss
             }
-
-            print("headers = ", headers)
+            self.status_publishing("headers = " + headers)
 
     # START --- GET PRODUCT LINK --- 
 
