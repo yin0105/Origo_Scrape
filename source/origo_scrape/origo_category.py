@@ -17,7 +17,6 @@ import platform
 
 from bs4 import BeautifulSoup
 import requests, sys
-from requests.auth import HTTPProxyAuth
 
 
 
