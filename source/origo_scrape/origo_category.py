@@ -72,15 +72,6 @@ class Origo_Category_Thread(Thread):
         category_link_list = []
 
         with requests.Session() as s:
-            proxies={
-                'http': 'http://16.162.119.238:443',
-                # 'https': 'http://16.162.119.238:443'
-                }
-            auth = HTTPProxyAuth("Administrator", "aaaA111!")
-
-            # s.proxies = proxies
-            # s.auth = auth 
-
             p = s.get("https://www.origo-online.origo.ie/profile/login?ReturnUrl=%2f")
 
             print(p)
@@ -118,7 +109,7 @@ class Origo_Category_Thread(Thread):
                 "UserName": user_email,
                 "Password": user_password,
                 "RememberMe": "false",
-            }, headers=headers, proxies=proxies)
+            }, headers=headers)
 
             # Get SESSION_ID
             cookie = p.headers["Set-Cookie"]
