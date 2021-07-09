@@ -67,11 +67,16 @@ class Origo_Category_Thread(Thread):
 
     def main_loop(self, user_email, user_password, stock_scrape=0):
         print("main_loop()")
-        BASE_URL = "https://www.origo-online.origo.ie"        
+        BASE_URL = "https://origo-online.origo.ie"        
         category_link_list = []
 
         with requests.Session() as s:
-            p = s.get("https://www.origo-online.origo.ie")
+            proxies = {
+                "http": "http://Administrator:aaaA111!@16.162.119.238:443",
+                "https": "http://Administrator:aaaA111!@16.162.119.238:443",
+            }
+
+            p = s.get("https://origo-online.origo.ie")
 
             print(p)
             # Get SESSION_ID
@@ -103,7 +108,7 @@ class Origo_Category_Thread(Thread):
                     _ga=GA1.2.1368687610.1625816043; _gid=GA1.2.1963759931.1625816043; _gat_gtag_UA_171557395_1=1',
             }
 
-            p = s.post("https://www.origo-online.origo.ie", data={
+            p = s.post("https://origo-online.origo.ie", data={
                 "__RequestVerificationToken": token_2,
                 "UserName": user_email,
                 "Password": user_password,
@@ -133,7 +138,7 @@ class Origo_Category_Thread(Thread):
     # START --- GET PRODUCT LINK --- 
 
     #         products_url_txt = open("origo_products_url.txt","w")
-    #         base_page = s.get('https://www.origo-online.origo.ie/default.aspx')
+    #         base_page = s.get('https://origo-online.origo.ie/default.aspx')
     #         soup = BeautifulSoup(base_page.content, 'html.parser')
     #         for main_category in soup.select("#Categories ul li a"):
     #             category_link_list.append({"name": main_category.getText(), "href": main_category['href']})
