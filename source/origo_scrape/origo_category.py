@@ -17,6 +17,8 @@ import platform
 
 from bs4 import BeautifulSoup
 import requests, sys
+from requests.auth import HTTPProxyAuth
+
 
 
 cur_path = dirname(__file__)
@@ -71,10 +73,15 @@ class Origo_Category_Thread(Thread):
 
         with requests.Session() as s:
             proxies={
-                'http': 'http://administrator:aaaA111!@16.162.119.238:443',
-                'https': 'http://administrator:aaaA111!@16.162.119.238:443'
+                'http': 'http://16.162.119.238:443',
+                # 'https': 'http://16.162.119.238:443'
                 }
-            p = s.get("https://www.origo-online.origo.ie/profile/login?ReturnUrl=%2f", proxies=proxies)
+            auth = HTTPProxyAuth("Administrator", "aaaA111!")
+
+            # s.proxies = proxies
+            # s.auth = auth 
+
+            p = s.get("https://www.origo-online.origo.ie/profile/login?ReturnUrl=%2f")
 
             print(p)
             # Get SESSION_ID
