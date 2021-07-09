@@ -76,33 +76,42 @@ class Origo_Category_Thread(Thread):
                 "https": "http://Administrator:aaaA111!@16.162.119.238:443",
             }
 
-            p = s.get("https://origo-online.origo.ie")
+            p = s.get("https://origo-online.origo.ie/profile/login?ReturnUrl=%2f", proxies=proxies)
+            print("*" * 100)
+            # print(p.content)
+            print("*" * 100)
 
-            print(p)
             # Get SESSION_ID
             cookie = p.headers["Set-Cookie"]
-            self.status_publishing("headers = " + p.headers)            
-            self.status_publishing("cookie = " + cookie)            
+            self.status_publishing(p.headers)   
+            print("****************")         
+            self.status_publishing(cookie)            
 
             soup = BeautifulSoup(p.content, 'html.parser')
 
-            lang_id = cookie[1][cookie[1].find("LanguageId"):]
+            lang_id = cookie[cookie.find("LanguageId"):]
             lang_id = lang_id[lang_id.find("=") + 1:]
             lang_id = lang_id[:lang_id.find(";")]
             self.status_publishing("lang_id = " + lang_id)            
             
-            session_id = cookie[2][cookie[2].find("ASP.NET_SessionId"):]
+            session_id = cookie[cookie.find("ASP.NET_SessionId"):]
             session_id = session_id[session_id.find("=") + 1:]
             session_id = session_id[:session_id.find(";")]
             self.status_publishing("session_id = " + session_id)
 
-            token = cookie[3][cookie[3].find("__RequestVerificationToken"):]
+            token = cookie[cookie.find("__RequestVerificationToken"):]
             token = token[token.find("=") + 1:]
             token = token[:token.find(";")]
             self.status_publishing("token = " + token)
 
-            token_2 = soup.find("form", attr={"action": ""}).find("input", attr={"name": "__RequestVerificationToken"})["value"]
-            self.status_publishing("token_2 = " + token_2)
+            token_2 = soup.select("form")
+            # print( token_2)
+            
+            # token_2 = soup.find("form", attrs={"action": "/profile/login?ReturnUrl=%2F"}).find("input", attr={"name": "__RequestVerificationToken"})["value"]
+            token_2 = soup.find("form", attrs = {"action": "/profile/login?ReturnUrl=%2F"}).find("input", attrs={"name": "__RequestVerificationToken"})["value"]
+            print("*" * 100)
+            self.status_publishing(token_2)
+            
 
             # Set HEADER
             headers = {
