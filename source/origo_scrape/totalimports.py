@@ -154,7 +154,7 @@ class TotalImports_Thread(Thread):
                     link = BASE_URL + link
                 
                 # try:
-                page = s.get(link, headers=headers)
+                page = s.get(link, headers=headers,timeout=30)
                 soup = BeautifulSoup(page.content, 'html.parser')
 
                 try:
@@ -215,8 +215,8 @@ class TotalImports_Thread(Thread):
                     worksheet.cell(column=8, row=i).value=product_link
                     worksheet.cell(column=9, row=i).value=product_img
                 else:
-                    worksheet.cell(column=0, row=i).value=product_sku
-                    worksheet.cell(column=1, row=i).value=product_stock
+                    worksheet.cell(column=1, row=i).value=product_sku
+                    worksheet.cell(column=2, row=i).value=product_stock
                     
                 # except:
                     # if stock_scrape == 0:

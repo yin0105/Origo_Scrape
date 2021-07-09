@@ -6,6 +6,7 @@ from django.template import loader
 from django.forms.utils import ErrorList
 from django.http import HttpResponse
 from .origo import Origo_Thread
+from .origo_category import Origo_Category_Thread
 from .supply_it import Supply_it_Thread
 from .furlongflooring import FF_Thread
 from .reydonsports import RDS_Thread
@@ -32,9 +33,14 @@ cur_path = dirname(__file__)
 root_path = cur_path[:cur_path.rfind(os.path.sep)]
 # root_path = root_path[:root_path.rfind(os.path.sep)]
 cur_site = ""
-t_origo = None
+# t_origo = None
+
+t_origo = []
+t_origo_cat = None
+
 t_supply_it = None
 t_ff = None
+
 t_rds = []
 t_rds_cat = None
 
@@ -42,19 +48,22 @@ t_totalimports = []
 t_totalimports_cat = None
 t_totalimports_delay = []
 
+
 # sites = [{"url": "https://origo-online.origo.ie", "short": "origo"}, {"url": "https://www.supply-it.ie/", "short": "supply_it"}, {"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
 # sites = [{"url": "https://www.reydonsports.com/", "short": "reydonsports"}]
 # sites = [{"url": "https://www.supply-it.ie/", "short": "supply_it"}]
-sites = [{"url": "http://totalimports.ie/", "short": "totalimports"}]
+# sites = [{"url": "http://totalimports.ie/", "short": "totalimports"}]
+sites = [{"url": "https://origo-online.origo.ie", "short": "origo"}]
+# sites = [{"url": "https://online.furlongflooring.com/", "short": "furlongflooring"}]
 scrape_status = None
-THREAD_COUNT = 10
-ALLOW_DELAY = 60
+THREAD_COUNT = 5
+ALLOW_DELAY = 120
 
 
 @login_required
 def index(request):
     global sites
-    # return render(request, "index.html")
+
     context = {}
     context['sites'] = sites
     html_template = loader.get_template( 'main/index.html' )
@@ -63,21 +72,27 @@ def index(request):
 
 @login_required
 def start_scrape(request):
-    global t_origo, t_supply_it, t_ff, t_rds, cur_site, stock_scrape
+    global t_origo, t_supply_it, t_ff, t_rds, t_totalimports, t_totalimports_cat, t_totalimports_delay, cur_site, stock_scrape
 
     print("start_scrape")
     cur_site = request.GET["site"]
     scrape_type = request.GET["scrape_type"]
     if cur_site == "origo":
-        if t_origo == None or scrape_status == "scraping is ended":
-            t_origo = Origo_Thread(scrape_type)
-            t_origo.start()
+        if len(t_origo) == 0 and t_origo_cat == None:
+            stock_scrape = 0
+            if scrape_type == "stock": stock_scrape = 1
+            origo_category_scrape(stock_scrape)
+            # totalimports_scrape(stock_scrape)
+
+        # if t_origo == None or t_origo.status == "scraping is ended":
+        #     t_origo = Origo_Thread(scrape_type)
+        #     t_origo.start()
     elif cur_site == "supply_it":
         if t_supply_it == None:
             t_supply_it = Supply_it_Thread(scrape_type)
             t_supply_it.start()
-    elif cur_site == "furlongflooring" or scrape_status == "scraping is ended":
-        if t_ff == None:
+    elif cur_site == "furlongflooring":
+        if t_ff == None or t_ff.status == "scraping is ended":
             t_ff = FF_Thread(scrape_type)
             t_ff.start()
     elif cur_site == "reydonsports":
@@ -89,19 +104,78 @@ def start_scrape(request):
         if len(t_totalimports) == 0 and t_totalimports_cat == None:
             stock_scrape = 0
             if scrape_type == "stock": stock_scrape = 1
-            # totalimports_category_scrape(stock_scrape)
-            totalimports_scrape(stock_scrape)
+            totalimports_category_scrape(stock_scrape)
+            # totalimports_scrape(stock_scrape)
 
     return HttpResponse(root_path)
 
 @login_required
 def get_scraping_status(request):
-    global t_origo, t_supply_it, t_ff, t_rds, t_totalimports, stock_scrape, scrape_status
+    global t_origo, t_origo_cat, t_supply_it, t_ff, t_rds, t_rds_cat, t_totalimports, t_totalimports_cat, t_totalimports_delay, stock_scrape, scrape_status
     res = ""
     cur_site = request.GET["site"]
 
     if cur_site == "origo" :
-        res = t_origo.status
+        # res = t_origo.status
+
+        if len(t_origo) > 0: 
+            scrape_status = ""
+            for tt in t_origo:
+                try:
+                    scrape_status += tt.status + "\n"
+                except:
+                    scrape_status += "\n"
+            # scrape_status = "\n".join([tt.status for tt in t_origo if tt != None])
+            i = 0
+            for t in t_origo:
+                i += 1
+                try:
+                    if t.status != "ended": 
+                        break
+                except:
+                    pass
+
+                if i == len(t_origo):
+                    # generate .xlsx file name
+                    timestamp = datetime.now().strftime("%Y-%m%d-%H%M%S")
+                    xlsfile_name = 'products-' + timestamp + '.xlsx'
+                    if stock_scrape == 1: xlsfile_name = 'stock-' + timestamp + '.xlsx'
+                    xlsfile_name = join(root_path, "xls", "origo", xlsfile_name)
+
+                    workbook = xlsxwriter.Workbook(xlsfile_name)
+                    worksheet = workbook.add_worksheet()
+                    
+                    row_num = 0
+                    for j in range(THREAD_COUNT):
+                        tmp_wb_obj = openpyxl.load_workbook(join(root_path, "xls", "origo", str(j) + "-temp.xlsx"))
+                        sheet = tmp_wb_obj.active
+                        
+                        for k, row in enumerate(sheet.iter_rows(values_only=True)):
+                            if k == 0:
+                                if j == 0:
+                                    # Write Header
+                                    for val, col in zip(row, range(len(row))):
+                                        worksheet.write(0, col, val)
+                            else:
+                                row_num += 1
+                                for val, col in zip(row, range(len(row))):
+                                    worksheet.write(row_num, col, val)
+                        
+                        tmp_wb_obj.close()
+                    workbook.close()
+                    scrape_status = "scraping is ended"
+                    break
+        elif t_origo_cat != None:
+            scrape_status = t_origo_cat.status            
+            if scrape_status == "ended":
+                t_origo_cat = None
+                origo_scrape(stock_scrape)
+                # totalimports_scrape()
+        
+        res = scrape_status 
+        if scrape_status == "scraping is ended":
+            t_origo.clear()
+
     elif cur_site == "supply_it" :
         res = t_supply_it.status
     elif cur_site == "furlongflooring" :
@@ -155,8 +229,9 @@ def get_scraping_status(request):
                     scrape_status = "scraping is ended"
                     break
         elif t_rds_cat != None:
-            scrape_status = t_rds_cat.status
+            scrape_status = t_rds_cat.status            
             if scrape_status == "ended":
+                t_rds_cat = None
                 reydonsports_scrape(stock_scrape)
                 # totalimports_scrape()
         
@@ -174,11 +249,7 @@ def get_scraping_status(request):
 
             for tt, i in zip(t_totalimports, range(len(t_totalimports))):
                 if tt.status != "ended" and len(pre_scrape_status) > i and pre_scrape_status[i] == tt.status:
-                    print("=" * 100)
-                    print("pre status = ", pre_scrape_status[i])
-                    # t_totalimports[i].stop()
                     t_totalimports_delay[i] += 1
-                    print("delay : ", t_totalimports_delay)
                     if t_totalimports_delay[i] >= ALLOW_DELAY:
                         totalimports_thread_start(i, stock_scrape)
                 else:
@@ -228,8 +299,9 @@ def get_scraping_status(request):
                     scrape_status = "scraping is ended"
                     break
         elif t_totalimports_cat != None:
-            scrape_status = t_totalimports_cat.status
+            scrape_status = t_totalimports_cat.status            
             if scrape_status == "ended":
+                t_totalimports_cat = None
                 # reydonsports_scrape()
                 totalimports_scrape(stock_scrape)
         
@@ -278,7 +350,6 @@ def download(request):
     if diff == "1" : file_name += "_" + compare
     zipfile_name = site + "-" + file_name + ".zip"
     file_name += ".xlsx"
-    print("file_name = " + file_name)
 
     file_path = []
     if diff =="1":
@@ -293,7 +364,6 @@ def download(request):
 
     for file in file_path:
         # Generate if there is no different .xlsx file
-        print("file = " + file)
         if diff == "1" and not path.exists(file) :
             compare_xlsx(site, stock, recent, compare)
         with open(file, 'rb') as fh:
@@ -305,7 +375,6 @@ def download(request):
 
 @login_required
 def compare_xlsx(site, stock, recent, compare) :
-    print("*************  compare_xlsx")
     global root_path
 
     # fields = ['id', 'category', 'title', 'stock', 'list price', 'nett price', 'description', 'URL', 'image']
@@ -334,7 +403,6 @@ def compare_xlsx(site, stock, recent, compare) :
             except:
                 pass
             older_products[row[0]] = row
-    print(str(len(older_products)))
 
     wb_obj = openpyxl.load_workbook(join(root_path, "xls", site, file_prefix + recent + ".xlsx"))
     sheet = wb_obj.active
@@ -348,7 +416,6 @@ def compare_xlsx(site, stock, recent, compare) :
             except:
                 pass
             newer_products[row[0]] = row
-    print(str(len(newer_products)))
 
     older_products_2 = older_products.copy()
 
@@ -394,17 +461,11 @@ def compare_xlsx(site, stock, recent, compare) :
             worksheet.write(i, j, val)
     workbook.close()
     
-    print("##############  add #############")
-    print(str(len(newer_products)))
-    print("##############  remove #############")
-    print(str(len(older_products)))
-
 
 def status_publishing(text) :
     global scrape_status
 
     scrape_status = text
-    print(text)
 
 
 def reydonsports_category_scrape(stock_scrape=0):
@@ -417,12 +478,6 @@ def reydonsports_scrape(stock_scrape=0):
     global t_rds
     products_url_txt = open("reydonsports_products_url.txt","r")
     lines = len(products_url_txt.readlines())
-    print("lines = ", lines)
-    
-    # i = -1  
-    # for head in fields:
-    #     i += 1            
-    #     worksheet.write(0, i, head)
     
     start_index = 0        
     
@@ -430,7 +485,6 @@ def reydonsports_scrape(stock_scrape=0):
         end_index = start_index + math.ceil(lines / THREAD_COUNT)
         if end_index > lines + 1: end_index = lines + 1
         th = RDS_Thread(i, start_index, end_index, stock_scrape)
-        print(start_index, end_index)
         th.start()
         t_rds.append(th)
 
@@ -455,11 +509,8 @@ def totalimports_thread_start(thread_index, stock_scrape=0):
         if end_index > lines + 1: end_index = lines + 1
         if i == thread_index :
             th = TotalImports_Thread(i, start_index, end_index, stock_scrape)
-            print(start_index, end_index)
             th.start()
             if thread_index < len(t_totalimports):
-                print("=" * 100)
-                print("thread replaced")
                 t_totalimports[thread_index] = th
                 t_totalimports_delay[thread_index] = 0
             else:
@@ -473,3 +524,26 @@ def totalimports_thread_start(thread_index, stock_scrape=0):
 def totalimports_scrape(stock_scrape=0):
     for i in range(THREAD_COUNT):
         totalimports_thread_start(i, stock_scrape)
+
+
+def origo_category_scrape(stock_scrape=0):
+    global t_origo_cat, t_origo
+    t_origo_cat = Origo_Category_Thread(stock_scrape)
+    t_origo_cat.start()
+
+
+def origo_scrape(stock_scrape=0):
+    global t_origo
+    products_url_txt = open("origo_products_url.txt","r")
+    lines = len(products_url_txt.readlines())
+    
+    start_index = 0        
+    
+    for i in range(THREAD_COUNT):
+        end_index = start_index + math.ceil(lines / THREAD_COUNT)
+        if end_index > lines + 1: end_index = lines + 1
+        th = RDS_Thread(i, start_index, end_index, stock_scrape)
+        th.start()
+        t_origo.append(th)
+
+        start_index = end_index

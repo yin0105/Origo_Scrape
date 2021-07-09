@@ -52,8 +52,8 @@ class TotalImports_Category_Thread(Thread):
          
     def run(self):
         now = datetime.now()
-        mail_address = os.environ.get('TOTALIMPORTS_LOGIN_ID')
-        mail_password = os.environ.get('TOTALIMPORTS_PASSWORD')
+        mail_address = os.environ.get('ORIGO_MAIL_ADDRESS')
+        mail_password = os.environ.get('ORIGO_MAIL_PASSWORD')
 
         try:
             self.main_loop(mail_address, mail_password, self.stock_scrape)
