@@ -72,7 +72,7 @@ class Origo_Category_Thread(Thread):
         category_link_list = []
 
         with requests.Session() as s:
-            p = s.get("https://www.origo-online.origo.ie/profile/login?ReturnUrl=%2f")
+            p = s.get("https://www.origo-online.origo.ie")
 
             print(p)
             # Get SESSION_ID
@@ -94,7 +94,7 @@ class Origo_Category_Thread(Thread):
             token = token[:token.find(";")]
             print("token = ", token)
 
-            token_2 = soup.find("form", attr={"action": "/profile/login?ReturnUrl=%2f"}).fine("input", attr={"name": "__RequestVerificationToken"})["value"]
+            token_2 = soup.find("form", attr={"action": ""}).find("input", attr={"name": "__RequestVerificationToken"})["value"]
             print("token_2 = ", token_2)
 
             # Set HEADER
@@ -104,7 +104,7 @@ class Origo_Category_Thread(Thread):
                     _ga=GA1.2.1368687610.1625816043; _gid=GA1.2.1963759931.1625816043; _gat_gtag_UA_171557395_1=1',
             }
 
-            p = s.post("https://www.origo-online.origo.ie/profile/login?ReturnUrl=%2f", data={
+            p = s.post("https://www.origo-online.origo.ie", data={
                 "__RequestVerificationToken": token_2,
                 "UserName": user_email,
                 "Password": user_password,
