@@ -8,9 +8,7 @@ CONTENT_DIR = os.path.join(BASE_DIR, 'content')
 SECRET_KEY = '3d305kajG5Jy8KBafCMpHwDIsNi0SqVaW'
 
 DEBUG = False
-ALLOWED_HOSTS = [
-    'example.com',
-]
+ALLOWED_HOSTS = ['*'] 
 
 SITE_ID = 1
 
@@ -28,6 +26,7 @@ INSTALLED_APPS = [
     # Application apps
     'main',
     'accounts',
+    'origo_scrape',
 ]
 
 MIDDLEWARE = [

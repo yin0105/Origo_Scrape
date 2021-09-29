@@ -11,7 +11,7 @@ CONTENT_DIR = os.path.join(BASE_DIR, 'content')
 SECRET_KEY = 'NhfTvayqggTBPswCXXhWaN69HuglgZIkM'
 
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 SITE_ID = 1
 
@@ -71,23 +71,23 @@ EMAIL_FILE_PATH = os.path.join(CONTENT_DIR, 'tmp/emails')
 EMAIL_HOST_USER = 'test@example.com'
 DEFAULT_FROM_EMAIL = 'test@example.com'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql', 
-#         'NAME': 'data_entry',
-#         'USER': 'root',
-#         'PASSWORD': 'aaaA111!',
-#         'HOST': 'origo-scrape.cwqz24rkkwbz.eu-west-1.rds.amazonaws.com',   
-#         'PORT': '3306',
-#     }    
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', 
+        'NAME': 'origo_scrape',
+        'USER': 'root',
+        'PASSWORD': 'aaaA111!',
+        'HOST': 'origo-scrape.cwqz24rkkwbz.eu-west-1.rds.amazonaws.com',   
+        'PORT': '3306',
+    }    
+}
 
 AUTH_PASSWORD_VALIDATORS = [
     {
